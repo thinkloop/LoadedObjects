@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<project name="Build" default="CompleteLocalBuild" basedir=".">
+	<!--
+	OVERVIEW
+	This script builds your project locally, including:
+	
+		1. Copy application files to local deployment path
+		2. Adjust ColdSpring settings: Reload=False, Debug=False, etc.
+
+	DEVELOPED BY
+	Bassil Karam (bassil.karam@t-mobile.com)
+	Jan. 7, 2008
+	-->
+
+	<!-- load properties -->
+	<property file="build.properties" />
+
+	<!-- create complete fileset -->
+	<fileset id="AllFiles" dir="." casesensitive="no">
+		<exclude name="**/*.svn*" />
+		<exclude name="**/*cvs*" />					
+		<exclude name="**/*build*" />
+		<exclude name="**/*deploy*" />
+		<exclude name="**/*svn*" />
+		<exclude name="**/*.project*" />
+		<exclude name="**/.externalToolBuilders/**" />
+		<exclude name="**/assets/**" />
+	</fileset>
+	
+	<!-- copy files locally -->
+	<target name="CopyFilesLocally" description="Copy files to local deployment folder...">
+		<sync todir="${path.build_railo}" includeEmptyDirs="true" verbose="true">
+			<fileset refid="AllFiles" />
+		</sync>
+		<!--
+		<sync todir="${path.build_openbd}" includeEmptyDirs="true" verbose="true">
+			<fileset refid="AllFiles" />
+		</sync>		
+		 sftp to destination 
+		<scp todir="cftuser@172.16.40.130:/var/lib/tomcat6.0/webapps/openbd" password="cftuser">  
+			<fileset refid="AllFiles" />
+		</scp>
+		-->
+	</target>	
+	
+	<!-- final touches -->
+	<target name="CompleteLocalBuild" depends="CopyFilesLocally" description="Complete local build">
+	</target> 
+</project>

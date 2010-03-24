@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans default-autowire="no">
+
+<!-- * * * * * * * * * * * * -->
+<!-- * * * *  CONFIG * * * * -->
+<!-- * * * * * * * * * * * * -->
+
+	<!-- Datasource -->
+	<bean id="Datasource" class="LoadedObjects.datasource">
+		<constructor-arg name="DSN"><value>Blog</value></constructor-arg>
+		<constructor-arg name="Username"><value></value></constructor-arg>
+		<constructor-arg name="Password"><value></value></constructor-arg>
+	</bean>
+
+	<!-- LoadedObjects -->
+	<bean id="LoadedObjects" class="LoadedObjects.LoadedObjects">
+		<constructor-arg name="Config">
+			<map>				
+				<!-- optional:
+					The server variable name (default = LoadedObjects) 
+					that will store stats on all applications running 
+					LoadedObjects, for later display as tables and charts in a dashboard format.
+					Every application should specify the same variable name so that all the 
+					stats can be displayed on one page.
+					If no value is specified, the default "LoadedObjects" will be used.
+					If an empty value is provided, stats will not be stored or processed at all. 
+					Perhaps this will be only for debugging depending how performant it is -->
+				<entry key="ServerVariableName"><value>LoadedObjects123</value></entry>
+				
+				<!-- to lazy-load the business objects' metadata (this could be useless - thinking of a case where there are 500 objects in the system, why load them all at instantiation?) -->
+				<entry key="LazyLoad"><value>False</value></entry>
+			</map>
+		</constructor-arg>
+		
+		<!-- plugins -->
+		<constructor-arg name="Plugins">
+			<list>
+				<value><bean name="Validator" class="LoadedObjects.plugins.validator.validator" /></value>
+			</list>
+		</constructor-arg>	
+		
+		<!-- business objects -->
+		<constructor-arg name="BusinessObjects">
+			<map>
+				<entry key="Post"><bean class="test.LoadedObjects4_Relationships.post" /></entry>
+				<entry key="Comment"><bean class="test.LoadedObjects4_Relationships.comment" /></entry>
+			</map>
+		</constructor-arg>
+	</bean>
+</beans>
