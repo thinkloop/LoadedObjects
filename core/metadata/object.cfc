@@ -7,8 +7,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<cfproperty name="Path" type="string" hint="The dot path notation (path.to.cfc) of the business object" />
 	<cfproperty name="DisplayName" type="string" hint="The display name of the business object (i.e. 'UserID' displayed as 'User ID')" />
 	<cfproperty name="Dependencies" type="struct" hint="A struct that containes an instance of each object that this business object depends on (is composed of)" />
-	<cfproperty name="Properties" type="struct" displayname="Properties" hint="The metadata of the properties of a business object"
-		relationship="OneToMany" with="Property" />
+	<cfproperty name="Properties" type="struct" displayname="Properties" hint="The metadata of the properties of a business object" relationship="OneToMany" with="Property" />
 
 	<!--- init --->
 	<cffunction name="init" access="public" output="false" returntype="any">
@@ -17,7 +16,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfargument name="DisplayName" type="string" default="" />
 		<cfargument name="Dependencies" type="struct" default="#StructNew()#" />
 
-		<cfscript>			
+		<cfscript>
 			variables.i=arguments;
 			variables.i.Properties=createObject('component', 'properties').init();
 		</cfscript>

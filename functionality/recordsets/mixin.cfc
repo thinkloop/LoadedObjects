@@ -1,17 +1,22 @@
 <!--- * * (coldfusion comments are completely stripped out once at compile time, and have zero impact on performance)
-Created By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
+Created By: Bassil Karam (bassil.karam@thinkloop.com) - 01/01/2008
 Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 * * --->
 <cfcomponent output="false">
 
-	<!--- generate query --->
+	<!--- init - this will be run after all plugins have been mixed in, then removed from the final business object --->
+	<cffunction name="init" access="public" output="false" returntype="void">
+
+	</cffunction>
+	
+	<!--- generate query 
 	<cffunction name="generateQuery" access="public" output="false" returntype="query">
 		<cfset var PropertiesList='' />
 		<cfset var current=StructNew() />
 		
 		<!--- if query does not exist, create it (and save it for performance, in case it is needed again later) --->
 		<cfif not isQuery(variables.i.Query)>
-			<cfset PropertiesList=variables.i.BO.getBOMetaData().listProperties() />
+			<cfset PropertiesList=getBOMetaData().listProperties() />
 			<cfset variables.i.Query=QueryNew(PropertiesList) />
 			
 			<!--- loop through source query --->
@@ -27,26 +32,23 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		
 		<cfreturn variables.i.Query />
 	</cffunction>
-	
+	--->
 	<!--- generate array of structs --->
 	<cffunction name="generateArrayOfStructs" access="public" output="false" returntype="array">
 		
-		<!--- if array of structs does not exist, create it (and save it for performance, in case it is needed again later) --->
-		<cfif not isArray(variables.i.ArrayOfStructs)>
-			<cfset variables.i.ArrayOfStructs=ArrayNew(1) />
+		<cfset var val = ArrayNew(1) />
 			
-			<!--- loop through source data --->
-			<cfloop condition="loop()">
-				<cfset ArrayAppend(variables.i.ArrayOfStructs, variables.i.BO.getMemento()) />
-			</cfloop>
-		</cfif>
+		<!--- loop through source data --->
+		<cfloop condition="loop()">
+			<cfset ArrayAppend(val, getMemento()) />
+		</cfloop>
 		
-		<cfreturn variables.i.ArrayOfStructs />
+		<cfreturn val />
 	</cffunction>
 	
-	<!--- generate array of typed structs --->
+	<!--- generate array of typed structs 
 	<cffunction name="generateArrayOfTypedStructs" access="public" output="false" returntype="array">
-		<cfset var Type=variables.i.BO.getBOMetaData().getPath() />
+		<cfset var Type=getBOMetaData().getPath() />
 		<cfset var current=StructNew() />
 		
 		<!--- if array of typed structs does not exist, create it (and save it for performance, in case it is needed again later) --->
@@ -55,7 +57,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			
 			<!--- loop through source data --->
 			<cfloop condition="loop()">
-				<cfset current.Struct=variables.i.BO.getMemento() />
+				<cfset current.Struct=getMemento() />
 				<cfset current.Struct['___Type___']=Type />
 				<cfset ArrayAppend(FinalArray, current.Struct) />
 			</cfloop>
@@ -63,8 +65,8 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		
 		<cfreturn variables.i.ArrayOfTypedStructs />
 	</cffunction>
-	
-	<!--- generate struct of structs --->
+	--->
+	<!--- generate struct of structs 
 	<cffunction name="generateStructOfStructs" access="public" output="false" returntype="struct">
 		<cfargument name="StructKey" type="string" required="true" hint="MAKE SURE THE *VALUE* OF THE STRUCT KEY CAN BE USED TO NAME A VARIABLE!" />
 
@@ -76,11 +78,12 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			
 			<!--- loop through source data --->
 			<cfloop condition="loop()">
-				<cfset current.Struct=variables.i.BO.getMemento() />
+				<cfset current.Struct=getMemento() />
 				<cfset variables.i.StructOfStructs[current.Struct[arguments.StructKey]]=currentStruct />
 			</cfloop>
 		</cfif>
 		
 		<cfreturn variables.i.StructOfStructs />
 	</cffunction>
+	--->
 </cfcomponent>

@@ -11,7 +11,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 	<cffunction name="init" access="public" output="false" returntype="any">		
 		<cfscript>
 			// instance
-			variables.i='do not instantiate a default struct'; // purposely not a struct so that if someone tries to set() an atribute without first adding atleat one property an error can be thrown
+			variables.i='do not instantiate a default struct'; // purposely not a struct so that if someone tries to set() an atribute without first adding atleast one property an error can be thrown
 			
 			// properties
 			variables.Properties=StructNew();
@@ -25,6 +25,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 			variables.Index.AttributeNames.Name='';
 			variables.Index.AttributeNames.DisplayName='';
 			variables.Index.AttributeNames.NullValue='';
+			variables.Index.AttributeNames.Default='';
 			variables.Index.AttributeNames.Position='';
 			variables.Index.AttributeNames.ReadOnly='';
 			
@@ -73,9 +74,10 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 		<cfargument name="Property" type="string" required="true" />
 		
 		<cfif exists(arguments.Property)>
-			<cfset variables.i=variables.Properties[arguments.Property] />
+			<cfset variables.i = variables.Properties[arguments.Property] />
 		<cfelse>
-			<cfthrow />
+			<!--- todo: --->
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Seek.UndefinedProperty" message="Could not SEEK property *#arguments.Property#*" detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 		
 		<cfreturn this />
@@ -94,6 +96,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 			variables.Properties[arguments.Property]=StructNew();
 			variables.Properties[arguments.Property]['Name']=arguments.Property;
 			variables.Properties[arguments.Property]['DisplayName']=arguments.Property;
+			variables.Properties[arguments.Property]['Default']='';
 			variables.Properties[arguments.Property]['NullValue']='';
 			variables.Properties[arguments.Property]['Position']=999;
 			variables.Properties[arguments.Property]['ReadOnly']=False;

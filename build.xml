@@ -17,14 +17,16 @@
 
 	<!-- create complete fileset -->
 	<fileset id="AllFiles" dir="." casesensitive="no">
-		<exclude name="**/*.svn*" />
+		<exclude name="**/*.svn**" />
+		<exclude name="**/*.git**" />
+		<exclude name="**/*.settings**" />
+		<exclude name="**/.externalToolBuilders/**" />
+		
 		<exclude name="**/*cvs*" />					
 		<exclude name="**/*build*" />
 		<exclude name="**/*deploy*" />
 		<exclude name="**/*svn*" />
 		<exclude name="**/*.project*" />
-		<exclude name="**/.externalToolBuilders/**" />
-		<exclude name="**/assets/**" />
 	</fileset>
 	
 	<!-- copy files locally -->

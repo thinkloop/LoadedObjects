@@ -45,14 +45,14 @@
 			Post.set('ID', 0);
 			Post.set('Title', 'title is not null');
 			
-			assertTrue(Post.isNullValue('ID'));
-			assertFalse(Post.isNullValue('Title'));
+			assertTrue(Post.is('ID'));
+			assertFalse(Post.is('Title'));
 		</cfscript>
 		
 		<!--- property doesn't exist --->
 		<cftry>
-			<cfset Post.isNullValue('NonExistentProperty') />
-			<cfset fail('Attempt to isNullValue(''NonExistentProperty'') a non-existent property did not throw an error when it should have')>
+			<cfset Post.is('NonExistentProperty') />
+			<cfset fail('Attempt to is(''NonExistentProperty'') a non-existent property did not throw an error when it should have')>
 			<cfcatch type="any"><!--- should always reach here ---></cfcatch>
 		</cftry>
 	</cffunction>

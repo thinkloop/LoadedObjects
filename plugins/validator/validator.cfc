@@ -103,7 +103,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var DisplayName=MetaData.getProperty(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
 			var Required=MetaData.getProperty(Name, 'Required');
-			var isNull=BO.isNullValue(Name);
+			var isNull=BO.is(Name);
 			var MinValue=MetaData.getProperty(Name, 'MinValue');
 			var MaxValue=MetaData.getProperty(Name, 'MaxValue');
 		</cfscript>
@@ -157,7 +157,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var DisplayName=MetaData.getProperty(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
 			var Required=MetaData.getProperty(Name, 'Required');
-			var isNull=BO.isNullValue(Name);
+			var isNull=BO.is(Name);
 			var MinValue=MetaData.getProperty(Name, 'MinValue');
 			var MaxValue=MetaData.getProperty(Name, 'MaxValue');
 			var Scale=MetaData.getProperty(Name, 'Scale');
@@ -222,7 +222,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var DisplayName=MetaData.getProperty(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
 			var Required=MetaData.getProperty(Name, 'Required');
-			var isNull=BO.isNullValue(Name);
+			var isNull=BO.is(Name);
 		</cfscript>
 
 		<!--- init return error --->
@@ -264,7 +264,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var DisplayName=MetaData.getProperty(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
 			var Required=MetaData.getProperty(Name, 'Required');
-			var isNull=BO.isNullValue(Name);
+			var isNull=BO.is(Name);
 			var MinValue=MetaData.getProperty(Name, 'MinValue');
 			var MaxValue=MetaData.getProperty(Name, 'MaxValue');
 		</cfscript>

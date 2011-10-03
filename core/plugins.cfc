@@ -68,8 +68,9 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfif isValid('integer', arguments.Index)>
 			<cfreturn arguments.Index gte 1 AND arguments.Index lte ArrayLen(variables.i.Plugins) />
 		<cfelse>
-			<cfreturn StructKeyExists(variables.i.NameIndex, arguments.Index) />
+			<cfreturn StructKeyExists(variables.i.NameIndex, arguments.Index) />		
 		</cfif>
+		
 	</cffunction>
 	
 	<!--- get all --->

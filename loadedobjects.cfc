@@ -10,7 +10,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<!--- init --->
 	<cffunction name="init" access="public" output="false" returntype="any">
 		<cfargument name="Config" type="struct" default="#StructNew()#" hint="A structure that defines config settings for LoadedObjects: ServerName" />
-		<cfargument name="Plugins" type="any" required="true" hint="Contains the plugins to use and mixin for the lifetime of this instance" />
+		<cfargument name="Plugins" type="array" default="#ArrayNew(1)#" hint="Contains the plugins to use and mixin for the lifetime of this instance" />
 		<cfargument name="BusinessObjects" type="struct" required="true" hint="Contains the business objects that will be managed by LoadedObjects" />
 
 		<cfscript>
@@ -31,8 +31,9 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 
 			// load plugins
 			//ArrayPrepend(arguments.Plugins, createObject('Component', 'functionality.constraints.service').init());
+			//ArrayPrepend(arguments.Plugins, createObject('Component', 'functionality.recordsets.service').init());
 			ArrayPrepend(arguments.Plugins, createObject('Component', 'functionality.sourcedata.service').init());
-			ArrayPrepend(arguments.Plugins, createObject('Component', 'functionality.instance.service').init());
+			//ArrayPrepend(arguments.Plugins, createObject('Component', 'functionality.instance.service').init());
 			ArrayPrepend(arguments.Plugins, createObject('Component', 'functionality.metadata.service').init());
 			ArrayPrepend(arguments.Plugins, createObject('Component', 'functionality.base.service').init());
 			ArrayPrepend(arguments.Plugins, createObject('Component', 'functionality.onmissingmethod.service').init());
@@ -59,7 +60,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<!--- CreatedObjects is an optional argument used internally to ensure that we do not enter an infinite
 		loop while recursing through the object's properties to create its child objects. When present, it
 		is used to know whether an object has been created or not. If it has been created, the property
-		should point to that object rather than creating a new one. Relationship Autowiring Styles.
+		should point to that object rather than creating a new one - Autowiring.
 		--->
 
 		<cfscript>

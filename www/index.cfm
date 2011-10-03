@@ -34,6 +34,7 @@
 	Post.setTitle('Title ##1');
 	Post.setBody('Body ##1');
 
+/*
 	tmpQuery=QueryNew('Comment,Name');
 	QueryAddRow(tmpQuery);
 	QuerySetCell(tmpQuery, 'Comment', 'Comment ##1');
@@ -42,9 +43,8 @@
 	QuerySetCell(tmpQuery, 'Name', 'Name ##2');
 	QuerySetCell(tmpQuery, 'Comment', 'Comment ##3');
 	QuerySetCell(tmpQuery, 'Name', 'Name ##3');
-
+*/
 	Post.setComments(LoadedObjects.new('Comment').setSourceData([{Comment='Comment ##1', Name='Name ##1'}, {Comment='Comment ##2', Name='Name ##2'}, {Comment='Comment ##3', Name='Name ##3'}]));
-	//Post.getComments().loop()
 </cfscript>
 <cfoutput>
 	<div id="Post">
