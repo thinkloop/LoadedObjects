@@ -14,7 +14,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			variables.i.Query=arguments.Query;
 		</cfscript>
 		
-		<cfif countRows() gt 0>
+		<cfif numRows() gt 0>
 			<cfset setCurrentRow(1) />
 		</cfif>
 				
@@ -51,7 +51,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<!--- add row --->
 	<cffunction name="addRow" access="private" output="false" returntype="any">
 		<cfset QueryAddRow(variables.i.Query) />
-		<cfset setCurrentRow(countRows()) />
+		<cfset setCurrentRow(numRows()) />
 		<cfset clear() />
 		<cfreturn this />
 	</cffunction>		
@@ -65,7 +65,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	</cffunction>
 --->
 	<!--- count rows --->
-	<cffunction name="countRows" access="public" output="false" returntype="numeric">
+	<cffunction name="numRows" access="public" output="false" returntype="numeric">
 		<cfreturn variables.i.Query.Recordcount />
 	</cffunction>
 	

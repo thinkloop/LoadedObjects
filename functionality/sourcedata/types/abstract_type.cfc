@@ -36,7 +36,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		</cfif>
 		
 		<!--- if there are no rows, add one --->
-		<cfif countRows() lte 0>
+		<cfif numRows() lte 0>
 			<cfset addRow() />
 			<cfset setCurrentRow(1) />
 		</cfif>		
@@ -93,7 +93,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 
 			<!--- if row is 0, start at the end of the recordset --->
 			<cfelseif row lte 0>
-				<cfset setCurrentRow(countRows()) />
+				<cfset setCurrentRow(numRows()) />
 				<cfreturn True />
 
 			<!--- if row is 1 there is no where left to go, return false --->
@@ -106,7 +106,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfelse>
 		
 			<!--- if next record exists, increment counter, populate object and return true --->
-			<cfif row lt countRows()>
+			<cfif row lt numRows()>
 				<cfset setCurrentRow(row + 1) />
 				<cfreturn True />
 
@@ -129,8 +129,8 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfargument name="Position" type="numeric" required="true" />
 
 		<!--- if the provided position is too high, set it to recordcount instead --->
-		<cfif arguments.Position gt countRows()>
-			<cfset variables.i.CurrentRow=countRows() />
+		<cfif arguments.Position gt numRows()>
+			<cfset variables.i.CurrentRow=numRows() />
 
 		<!--- if the provided position is too low, set it to 1 instead --->
 		<cfelseif arguments.Position lt 1>

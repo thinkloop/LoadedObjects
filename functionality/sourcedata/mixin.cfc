@@ -141,14 +141,14 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn variables.SourceData.loop(arguments.Direction) />
 	</cffunction>
 	
-	<!--- count rows --->
-	<cffunction name="countRows" access="public" output="false" returntype="numeric">
-		<cfreturn variables.SourceData.countRows() />
+	<!--- num rows --->
+	<cffunction name="numRows" access="public" output="false" returntype="numeric">
+		<cfreturn variables.SourceData.numRows() />
 	</cffunction>	
 		
 	<!--- has rows --->
 	<cffunction name="hasRows" access="public" output="false" returntype="boolean">
-		<cfreturn variables.SourceData.countRows() gt 0 />
+		<cfreturn variables.SourceData.numRows() gt 0 />
 	</cffunction>
 	
 	<!--- memento --->
