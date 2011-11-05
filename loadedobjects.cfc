@@ -50,8 +50,15 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<!--- new --->
 	<cffunction name="new" access="public" output="false" returntype="any">
 		<cfargument name="BusinessObjectName" type="string" required="true" />
-		<cfreturn recurseChildObjects(arguments.BusinessObjectName) />
+		<cfreturn create(arguments.BusinessObjectName) />
+		<!---<cfreturn recurseChildObjects(arguments.BusinessObjectName) />--->
 	</cffunction>
+	
+	<!--- new from path --->
+	<cffunction name="newFromPath" access="public" output="false" returntype="any">
+		<cfargument name="BusinessObjectPath" type="string" required="true" />
+		<cfreturn create(getNameFromPath(arguments.BusinessObjectPath)) />
+	</cffunction>	
 
 	<!--- recurse child objects (private) --->
 	<cffunction name="recurseChildObjects" access="private" output="false" returntype="any">
@@ -158,7 +165,13 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfargument name="BusinessObjectName" type="string" required="true" />
 		<cfreturn variables.i.Metadata.exists(arguments.BusinessObjectName) />
 	</cffunction>
-
+	
+	<!--- get name from path --->
+	<cffunction name="getNameFromPath" access="public" output="false" returntype="string">
+		<cfargument name="BusinessObjectPath" type="string" required="true" />
+		<cfreturn variables.i.Metadata.getNameFromPath(arguments.BusinessObjectPath) />
+	</cffunction>
+		
 	<!--- list metadata/business objects --->
 	<cffunction name="listMetaDataObjects" access="public" output="false" returntype="string">
 		<cfreturn variables.i.Metadata.list() />

@@ -36,23 +36,22 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	</cffunction>	
 	
 	<!--- add column --->
-	<cffunction name="addColumn" access="private" output="false" returntype="any">
+	<cffunction name="addColumn" access="public" output="false" returntype="any">
 		<cfargument name="Name" type="string" required="true" />
-		<cfset variables.i.ArrayOfStructs[getCurrentRow()][arguments.Name] = getMetaDataObject().getProperties().seek(arguments.Name).get('Default') />
+		<cfset variables.i.ArrayOfStructs[getCurrentRow()][arguments.Name] = variables.BO.defaultValue(arguments.Name) />
 		<cfreturn this />
 	</cffunction>
 	
 	<!--- exists column --->
-	<cffunction name="existsColumn" access="private" output="false" returntype="boolean">
+	<cffunction name="existsColumn" access="public" output="false" returntype="boolean">
 		<cfargument name="Name" type="string" required="true" />
 		<cfreturn StructKeyExists(variables.i.ArrayOfStructs[getCurrentRow()], arguments.Name) />
 	</cffunction>
 		
 	<!--- add row --->
-	<cffunction name="addRow" access="private" output="false" returntype="any">
+	<cffunction name="addRow" access="public" output="false" returntype="any">
 		<cfset ArrayAppend(variables.i.ArrayOfStructs, StructNew()) />
 		<cfset setCurrentRow(numRows()) />
-		<cfset clear() />
 		<cfreturn this />
 	</cffunction>
 		

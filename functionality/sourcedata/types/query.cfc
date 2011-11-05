@@ -32,13 +32,23 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<!--- get value --->
 	<cffunction name="getValue" access="private" output="false" returntype="any">
 		<cfargument name="Name" type="string" required="true" />
-		<cfreturn variables.i.Query[arguments.Name][getCurrentRow()] />
+		<cfset var returnValue = variables.i.Query[arguments.Name][getCurrentRow()] />
+		<cfif isSimplevalue(returnValue) AND returnValue is getQueryNullValue()>
+			<cfset returnValue = variables.BO.defaultValue(arguments.Name) />
+			<cfset setValue(arguments.Name, returnValue) />
+		</cfif>
+		<cfreturn returnValue />
 	</cffunction>	
 	
 	<!--- add column --->
-	<cffunction name="addColumn" access="private" output="false" returntype="any">
+	<cffunction name="addColumn" access="public" output="false" returntype="any">
 		<cfargument name="Name" type="string" required="true" />
 		<cfset QueryAddColumn(variables.i.Query, arguments.Name) />
+		
+		<cfloop query="variables.i.Query">
+			<cfset variables.i.Query[arguments.Name] = getQueryNullValue() />
+		</cfloop>
+				
 		<cfreturn this />
 	</cffunction>
 	
@@ -49,13 +59,17 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	</cffunction>
 		
 	<!--- add row --->
-	<cffunction name="addRow" access="private" output="false" returntype="any">
+	<cffunction name="addRow" access="public" output="false" returntype="any">
 		<cfset QueryAddRow(variables.i.Query) />
 		<cfset setCurrentRow(numRows()) />
-		<cfset clear() />
 		<cfreturn this />
 	</cffunction>		
 	
+	<!--- get query null value: since adding a query column creates a value for each row, there is no concept of null, like with a struct. So rather than populating every row with a potentially heavy default value (i.e. cfc) when adding a query column, we instead set it to this null value then check for it in 'get' --->
+	<cffunction name="getQueryNullValue" access="public" output="false" returntype="string">
+		<cfreturn 'loadedobjects-xx-ww-@$-loaded-**-objects-++-loaded-%%-objects' />
+	</cffunction>
+		
 	<!--- seek 
 	<cffunction name="seek" access="public" output="false" returntype="struct">
 		<cfargument name="Row" type="numeric" required="true" />

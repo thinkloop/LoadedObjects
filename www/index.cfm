@@ -33,6 +33,13 @@
 	Post.setDateCreated(now());
 	Post.setTitle('Title ##1');
 	Post.setBody('Body ##1');
+	
+	Post.getSourceData().addRow();
+	
+	Post.setID(2);
+	Post.setDateCreated(now());
+	Post.setTitle('Title ##2');
+	Post.setBody('Body ##2');	
 
 /*
 	tmpQuery=QueryNew('Comment,Name');
@@ -44,7 +51,7 @@
 	QuerySetCell(tmpQuery, 'Comment', 'Comment ##3');
 	QuerySetCell(tmpQuery, 'Name', 'Name ##3');
 */
-	Post.setComments(LoadedObjects.new('Comment').setSourceData([{Comment='Comment ##1', Name='Name ##1'}, {Comment='Comment ##2', Name='Name ##2'}, {Comment='Comment ##3', Name='Name ##3'}]));
+	//Post.setComments(LoadedObjects.new('Comment').setSourceData([{Comment='Comment ##1', Name='Name ##1'}, {Comment='Comment ##2', Name='Name ##2'}, {Comment='Comment ##3', Name='Name ##3'}]));
 </cfscript>
 <cfoutput>
 	<div id="Post">
@@ -57,12 +64,22 @@
 	</div>
 	<hr />
 	<div id="Comments">
-		<cfloop condition="#Post.getComments().loop()#">
+		<cfloop condition="#Post.loop()#">
+			<cfset newQuery = QueryNew('CommentID,Comment') />
+			<cfset Post.getComments2().setSourceData(newQuery) />
+			<!---
 			<p>
 				#Post.getComments().getComment()# <strong>by #Post.getComments().getName()#</strong>
 			</p>
+			--->
 		</cfloop>
+<cfdump var="#Post.getSourceData().raw()#">		
 	</div>
+	<!---
+	<cfdump var="#Post.getSourceData().raw()#">
+	<cfdump var="#Post.getComments2()#">
+	<cfdump var="#Post.getSourceData().raw()#">
+	--->
 </cfoutput>
 
 <cffunction name="dump" output="true">

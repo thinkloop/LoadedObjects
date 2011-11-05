@@ -12,8 +12,10 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 
 		<!--- set meta data --->
 		<cfscript>
+			var parsedMetaData=parseMetaDataFromBusinessObjects(arguments.BusinessObjects);
 			variables.i=StructNew();
-			variables.i.MetaData=parseMetaDataFromBusinessObjects(arguments.BusinessObjects);
+			variables.i.MetaData=parsedMetaData.Names;
+			variables.i.MetaDataPathCache=parsedMetaData.PathCache;
 			variables.i.LoadedObjects=arguments.LoadedObjects;
 		</cfscript>
 
@@ -23,10 +25,15 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<!--- get --->
 	<cffunction name="get" access="public" output="false" returntype="any">
 		<cfargument name="BusinessObjectName" type="string" required="true" />
-
 		<cfreturn variables.i.MetaData[arguments.BusinessObjectName] />
 	</cffunction>
 
+	<!--- get name from path --->
+	<cffunction name="getNameFromPath" access="public" output="false" returntype="string">
+		<cfargument name="BusinessObjectPath" type="string" required="true" />
+		<cfreturn variables.i.MetaDataPathCache[arguments.BusinessObjectPath] />
+	</cffunction>
+	
 	<!--- exists --->
 	<cffunction name="exists" access="public" output="false" returntype="boolean">
 		<cfargument name="BusinessObjectName" type="string" required="true" />
@@ -60,12 +67,15 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var BO=StructNew();
 			
 			var Metadata='';
+			var MetadataProperties='';
 
 			var currentBO='';
 			var currentProperty='';
 			var currentPropertyAttribute='';
 			
-			var MetaDataReturnStruct=structnew();
+			var MetaDataReturnStruct=StructNew();
+			MetaDataReturnStruct.Names=StructNew();
+			MetaDataReturnStruct.Paths=StructNew();
 			
 			BO.Object='';
 			BO.Metadata='';
@@ -103,26 +113,30 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfif StructKeyExists(BO.Metadata, 'Properties') AND isArray(BO.Metadata.Properties)>
 				<cfloop from="1" to="#ArrayLen(BO.Metadata.Properties)#" index="currentProperty">
 					
+					<cfset MetadataProperties = Metadata.getProperties() />
+					
 					<!--- set shortcuts --->
 					<cfset BO.MetadataProperty=BO.Metadata.Properties[currentProperty] />
 
 					<!--- add new property --->
-					<cfset Metadata.getProperties().add(BO.MetadataProperty.Name) />
+					<cfset MetadataProperties.addProperty(BO.MetadataProperty.Name) />
 			
 					<!--- loop through property attributes of property and add them to metadata object --->
 					<cfloop collection="#BO.MetadataProperty#" item="currentPropertyAttribute">
-						<cfset Metadata.getProperties().set(currentPropertyAttribute, BO.MetadataProperty[currentPropertyAttribute]) />
+						<cfset MetadataProperties.setAttribute(BO.MetadataProperty.Name, currentPropertyAttribute, BO.MetadataProperty[currentPropertyAttribute]) />
 					</cfloop>
 					
-					<!--- check for relationship to another object --->
-					<cfif ListFindNoCase(StructKeyList(arguments.BusinessObjects), Metadata.getProperties().get('Type'))>
-						<cfset Metadata.getProperties().set('LoadedObjectsType', Metadata.getProperties().get('Type')) />
+					<!--- check for relationship to another object
+					<cfif ListFindNoCase(StructKeyList(arguments.BusinessObjects), MetadataProperties.get('Type'))>
+						<cfset MetadataProperties.setAttribute('LoadedObjectsType', MetadataProperties.get('Type')) />
 					</cfif>
+					--->
 				</cfloop>
 			</cfif>
 			
 			<!--- append metadata object to return struct --->
-			<cfset MetaDataReturnStruct[currentBO]=Metadata />
+			<cfset MetaDataReturnStruct['Names'][currentBO]=Metadata />
+			<cfset MetaDataReturnStruct['PathCache'][BO.Metadata.Name]=currentBO />			
 		</cfloop>		
 		
 		<cfreturn MetaDataReturnStruct />

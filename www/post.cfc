@@ -10,6 +10,7 @@
 	<cfproperty name="Title" dbname="Title" displayname="Title" />
 	<cfproperty name="Body" dbname="Body" displayname="Body" />
 	<cfproperty name="Views" dbname="Views" displayname="Number of Views" />
+	<cfproperty name="Comments2" type="loadedobjects.www.comment" />
 	
 	<!--- many to one: if 'linkcolumn' is provided, this relationship returns an inline property rather than an object --->
 	<cfproperty name="Category" displayname="Category" 

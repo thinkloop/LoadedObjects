@@ -11,10 +11,12 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfargument name="BusinessObject" type="any" required="true" hint="A reference to the current business object" />
 		
 		<cfscript>
-			variables.i=StructNew();
-			variables.i.BO=arguments.BusinessObject;
-			variables.i.CurrentRow=0;
-			variables.i.LoopStarted=False;
+			variables.i = StructNew();
+			variables.BO = arguments.BusinessObject;
+			variables.MetaDataObject = variables.BO.getMetaDataObject();
+			variables.Properties = variables.MetaDataObject.getProperties();			
+			variables.i.CurrentRow = 0;
+			variables.i.LoopStarted = False;
 		</cfscript>
 		
 		<cfreturn this />
@@ -26,8 +28,8 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfargument name="Value" type="any" required="true" />
 
 		<!--- if this property is not supported by this object, throw error --->	
-		<cfif not getMetaDataObject().getProperties().exists(arguments.Name)>
-			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Set.UndefinedProperty" message="Could not SET the property #ucase(arguments.Name)# because it was not found in component #ucase(getMetaDataObject().getPath())#" detail="Ensure that the property is defined, and that it is spelled correctly." />
+		<cfif not variables.Properties.existsProperty(arguments.Name)>
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Set.UndefinedProperty" message="Could not SET the property #ucase(arguments.Name)# because it was not found in component #ucase(variables.MetaDataObject.getPath())#" detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 		
 		<!--- if column does not exist, create it --->
@@ -57,20 +59,18 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfargument name="Name" type="string" required="true" />				
 
 		<!--- if this property is not supported by this object, throw error --->	
-		<cfif not getMetaDataObject().getProperties().exists(arguments.Name)>
-			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Get.UndefinedProperty" message="Could not GET the property #ucase(arguments.Name)# because it was not found in component #ucase(getMetaDataObject().getPath())#" detail="Ensure that the property is defined, and that it is spelled correctly." />
+		<cfif not variables.Properties.existsProperty(arguments.Name)>
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Get.UndefinedProperty" message="Could not GET the property '#ucase(arguments.Name)#' because it was not found in component '#ucase(variables.MetaDataObject.getPath())#'" detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 		
-		<!--- if currentrow is good and column is good, return requested value --->
-		<cfif getCurrentRow() gte 1 AND existsColumn(arguments.Name)>
-			<cfreturn getValue(arguments.Name) />
-			
-		<!--- if currentrow is bad, return default value --->
-		<cfelse>
-			<cfreturn getMetaDataObject().getProperties().seek(arguments.Name).get('Default') />
-		</cfif>	
+		<!--- if currentrow is bad or column doesn't exist, set and return default value --->
+		<cfif getCurrentRow() lte 0 OR not existsColumn(arguments.Name)>
+			<cfset set(arguments.Name, variables.BO.defaultValue(arguments.Name)) />
+		</cfif>
+		
+		<cfreturn getValue(arguments.Name) />
 	</cffunction>
-			
+	
 	<!--- loop --->
 	<cffunction name="loop" access="public" output="false" returntype="boolean">
 		<cfargument name="Direction" type="string" default="forward" hint="Can be: forward, reverse" />
@@ -166,12 +166,5 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 
 	<!--- TODO: deleteRow(): delete row at current cursor position --->
 	
-<!--- * * * * * * * * * * --->
-<!--- * * CONVENIENCE * * --->
-<!--- * * * * * * * * * * --->
-	
-	<cffunction name="getMetaDataObject" access="public" output="false" returntype="any">
-		<cfreturn variables.i.BO.getMetaDataObject() />
-	</cffunction>
 
 </cfcomponent>

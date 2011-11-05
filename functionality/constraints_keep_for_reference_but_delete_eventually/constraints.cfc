@@ -57,7 +57,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<!--- filters --->
 	<cffunction name="addFilter" access="public" output="false" returntype="any">
 		<cfargument name="Property" type="string" required="true" hint="Property to filter." />
-		<cfargument name="Value" type="string" required="true" hint="Value to filter by. A * (star) can be used as a wildcard. If only a * is provided, properties that are NOT null (as defined by the 'null' metadata property) will match." />
+		<cfargument name="Value" type="string" required="true" hint="Value to filter by. A * (star) can be used as a wildcard. If only a * is provided, properties that are NOT null (as defined by the 'nullvalue' metadata property) will match." />
 		<cfset variables.i.Filters[arguments.Property]=arguments.Value />
 		<cfreturn this />
 	</cffunction>

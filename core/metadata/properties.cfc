@@ -16,20 +16,21 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 			// properties
 			variables.Properties=StructNew();
 			
-			// index
+			/* index
 			variables.Index=StructNew();
 			variables.Index.PropertyNamesArray=ArrayNew(1);
-			
-			// these are defaults from add()
+			*/
+			/* these are defaults from add()
 			variables.Index.AttributeNames=StructNew();
 			variables.Index.AttributeNames.Name='';
 			variables.Index.AttributeNames.DisplayName='';
+			variables.Index.AttributeNames.Type='string';		
 			variables.Index.AttributeNames.NullValue='';
-			variables.Index.AttributeNames.Default='';
 			variables.Index.AttributeNames.Position='';
 			variables.Index.AttributeNames.ReadOnly='';
 			
 			variables.Index.Cursor=0;
+			*/
 		</cfscript>
 
 		<cfreturn this />
@@ -39,37 +40,37 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 <!--- * * ATTRIBUTES * * --->
 <!--- * * * * * * * * * *--->
 	
-	<!--- set --->
-	<cffunction name="set" access="public" output="false" returntype="any">
-		<cfargument name="PropertyAttribute" type="string" required="true" />
-		<cfargument name="PropertyAttributeValue" type="string" required="true" />
+	<!--- set attribute --->
+	<cffunction name="setAttribute" access="public" output="false" returntype="any">
+		<cfargument name="Property" type="string" required="true" />
+		<cfargument name="Attribute" type="string" required="true" />
+		<cfargument name="AttributeValue" type="string" required="true" />
 		
-		<cfif not isStruct(variables.i)>
-			<cfthrow />
-		<cfelse>
-			<cfset variables.i[arguments.PropertyAttribute]=arguments.PropertyAttributeValue />
-			<cfset variables.Index.AttributeNames[arguments.PropertyAttribute]="" /> <!--- doesn't matter what the value is --->
-		</cfif>
+		<cfset variables.Properties[arguments.Property][arguments.Attribute]=arguments.AttributeValue />
+		<!---<cfset variables.Index.AttributeNames[arguments.Attribute]="" /> <!--- doesn't matter what the value is --->--->
 		
 		<cfreturn this />
 	</cffunction>
 	
-	<!--- get --->
-	<cffunction name="get" access="public" output="false" returntype="string">
-		<cfargument name="PropertyAttribute" type="string" required="true" />
-		
-		<cfif StructKeyExists(variables.i, arguments.PropertyAttribute)>
-			<cfreturn variables.i[arguments.PropertyAttribute] />
-		<cfelse>
-			<cfreturn '' />
-		</cfif>
+	<!--- get attribute --->
+	<cffunction name="getAttribute" access="public" output="false" returntype="string">
+		<cfargument name="Property" type="string" required="true" />
+		<cfargument name="Attribute" type="string" required="true" />
+		<cfreturn variables.Properties[arguments.Property][arguments.Attribute] />
 	</cffunction>
-
+	
+	<!--- exists attribute --->
+	<cffunction name="existsAttribute" access="public" output="false" returntype="boolean">
+		<cfargument name="Property" type="string" required="true" />
+		<cfargument name="Attribute" type="string" required="true" />
+		<cfreturn StructKeyExists(variables.Properties, arguments.Property) AND StructKeyExists(variables.Properties[arguments.Property], arguments.Attribute) />
+	</cffunction>	
+	
 <!--- * * * * * * * * *--->
 <!--- * * PROPERTY * * --->
 <!--- * * * * * * * * *--->
 
-	<!--- seek --->
+	<!--- seek 
 	<cffunction name="seek" access="public" output="false" returntype="any">
 		<cfargument name="Property" type="string" required="true" />
 		
@@ -82,51 +83,42 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 		
 		<cfreturn this />
 	</cffunction>
-
-	<!--- get instance --->
-	<cffunction name="getInstance" access="public" output="false" returntype="struct">
-		<cfreturn variables.i />
-	</cffunction>
+	--->
 	
-	<!--- add --->
-	<cffunction name="add" access="public" output="false" returntype="any">
+	<!--- add property --->
+	<cffunction name="addProperty" access="public" output="false" returntype="any">
 		<cfargument name="Property" type="string" required="true" hint="If property already exists it will be overwritten" />
 
 		<cfscript>
 			variables.Properties[arguments.Property]=StructNew();
 			variables.Properties[arguments.Property]['Name']=arguments.Property;
 			variables.Properties[arguments.Property]['DisplayName']=arguments.Property;
-			variables.Properties[arguments.Property]['Default']='';
+			variables.Properties[arguments.Property]['Type']='string';
 			variables.Properties[arguments.Property]['NullValue']='';
 			variables.Properties[arguments.Property]['Position']=999;
 			variables.Properties[arguments.Property]['ReadOnly']=False;
 			
 			// sort properties
-			variables.Index.PropertyNamesArray=StructSort(variables.Properties, 'numeric', 'ASC', 'Position');
+			//variables.Index.PropertyNamesArray=StructSort(variables.Properties, 'numeric', 'ASC', 'Position');
 			
 			// reference current instance to newly added property
-			seek(arguments.Property);
+			//seek(arguments.Property);
 		</cfscript>
 		
 		<cfreturn this />
 	</cffunction>
 
-	<!--- exists --->
-	<cffunction name="exists" access="public" output="false" returntype="boolean">
+	<!--- exists property --->
+	<cffunction name="existsProperty" access="public" output="false" returntype="boolean">
 		<cfargument name="Property" type="string" required="true" />
-		
-		<cfif StructKeyExists(variables.Properties, arguments.Property)>
-			<cfreturn True />
-		<cfelse>
-			<cfreturn False />
-		</cfif>
+		<cfreturn StructKeyExists(variables.Properties, arguments.Property) />
 	</cffunction>
 
 <!--- * * * * * * *--->
 <!--- * * LOOP * * --->
 <!--- * * * * * * *--->
 	
-	<!--- loop --->
+	<!--- loop 
 	<cffunction name="loop" access="public" output="false" returntype="boolean">
 		<cfargument name="Filter" type="any" default="" hint="Can be a struct or comma-separated list of key-value pairs. A * (star) can be used as a wildcard. If a filter key value is ONLY a * (star) and nothing else, the property must simply exist and be non-empty." />
 		
@@ -170,26 +162,26 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 		
 		<cfreturn ReturnBoolean />
 	</cffunction>
-	
-<!--- * * * * * * * * * * * * * * --->
-<!--- * * COLLECTION ORIENTED * * --->
-<!--- * * * * * * * * * * * * * * --->
+	--->
+<!--- * * * * * * * * * * * * * * * * * * * * * * * * * --->
+<!--- * * COLLECTION ORIENTED CONVENIENCE FUNCTIONS * * --->
+<!--- * * * * * * * * * * * * * * * * * * * * * * * * * --->
 
 	<!--- array --->
-	<cffunction name="array" access="public" output="false" returntype="array">
-		<cfreturn variables.Index.PropertyNamesArray />
+	<cffunction name="getPropertyNamesArray" access="public" output="false" returntype="array">	
+		<cfreturn StructKeyArray(variables.Properties) />
 	</cffunction>
 
-	<!--- list --->
+	<!--- list 
 	<cffunction name="list" access="public" output="false" returntype="string">
 		<cfreturn ArrayToList(variables.Index.PropertyNamesArray) />
 	</cffunction>
-
-	<!--- count --->
+--->
+	<!--- count 
 	<cffunction name="count" access="public" output="false" returntype="numeric">
 		<cfreturn ArrayLen(variables.Index.PropertyNamesArray)>
 	</cffunction>
-	
+	--->
 	<!--- get all --->
 	<cffunction name="getAll" access="public" output="false" returntype="struct">
 		<cfreturn variables.Properties />
