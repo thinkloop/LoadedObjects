@@ -82,7 +82,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<cffunction name="numRows" access="public" output="false" returntype="numeric">
 		<cfreturn variables.i.Query.Recordcount />
 	</cffunction>
-	
+		
 	<!--- raw --->
 	<cffunction name="raw" access="public" output="false" returntype="query">
 		<cfreturn variables.i.Query />

@@ -157,7 +157,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfset variables.i.TotalRows=0 />
 		<cfreturn this />
 	</cffunction>
-
+	
 <!--- * * * * * * * * * *--->
 <!--- * * MANAGEMENT (maybe) * * --->
 <!--- * * * * * * * * * *--->

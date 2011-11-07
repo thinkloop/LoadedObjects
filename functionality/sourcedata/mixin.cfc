@@ -201,6 +201,16 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn variables.SourceData.numRows() gt 0 />
 	</cffunction>
 	
+	<!--- list property values --->
+	<cffunction name="listPropertyValues" access="public" output="false" returntype="array">
+		<cfargument name="Name" type="string" required="true" hint="Property/column name" />
+		<cfset FinalArray = ArrayNew(1) />
+		<cfloop condition="#loop()#">
+			<cfset ArrayAppend(FinalArray, get(arguments.Name)) />
+		</cfloop>
+		<cfreturn FinalArray />
+	</cffunction>
+		
 	<!--- get memento --->
 	<cffunction name="getMemento" access="public" output="false" returntype="struct">
 		
