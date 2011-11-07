@@ -10,7 +10,6 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			variables.SourceData='';
 			variables.MetaDataObject = getMetaDataObject();
 			variables.Properties = variables.MetaDataObject.getProperties();
-			//clear();
 		</cfscript>
 		
 		<!--- init source data --->
@@ -174,9 +173,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfset ArrayAppend(EmptyArrayOfStructs, arguments.SourceData) />
 			<cfset variables.SourceData=createObject('component', 'types.arrayofstructs').init(this, EmptyArrayOfStructs) />
 		<cfelse>
-			<!--- TODO: throw an error that the type is unsupported --->
-<cfdump var="#arguments.SourceData#">			
-			<cfthrow />
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.seSourceData.InvalidType" message="Could not set 'SOURCEDATA' because the provided type is not supported." detail="Ensure that the provided recordset is a a struct, query or array-of-structs." />
 		</cfif>
 		
 		<cfreturn this />
@@ -191,6 +188,11 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn variables.SourceData.loop(arguments.Direction) />
 	</cffunction>
 	
+	<!--- current row  --->
+	<cffunction name="getCurrentRow" access="public" output="false" returntype="numeric" hint="Returns the current row">
+		<cfreturn variables.SourceData.getCurrentRow() />
+	</cffunction>
+	
 	<!--- num rows --->
 	<cffunction name="numRows" access="public" output="false" returntype="numeric">
 		<cfreturn variables.SourceData.numRows() />
@@ -201,6 +203,14 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn variables.SourceData.numRows() gt 0 />
 	</cffunction>
 	
+	<!--- seek: moves the cursor to a specific row based on a value of a given property. If the value is not unique within the sourcedata, it will move to the first instance of the value. This was intended for use with primary keys. --->
+	<cffunction name="seek" access="public" output="false" returntype="struct">
+		<cfargument name="Property" type="string" required="true" />
+		<cfargument name="Value" type="any" required="true" />
+		
+		<cfreturn variables.SourceData.seek(arguments.Property, arguments.Value) />
+	</cffunction>
+		
 	<!--- list property values --->
 	<cffunction name="listPropertyValues" access="public" output="false" returntype="array">
 		<cfargument name="Name" type="string" required="true" hint="Property/column name" />

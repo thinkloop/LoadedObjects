@@ -144,6 +144,23 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn this />
 	</cffunction>
 	
+	<!--- seek: moves the cursor to a specific row based on a value of a given property. If the value is not unique within the sourcedata, it will move to the first instance of the value. This was intended for use with primary keys. --->
+	<cffunction name="seek" access="public" output="false" returntype="struct">
+		<cfargument name="Property" type="string" required="true" />
+		<cfargument name="Value" type="any" required="true" />
+		
+		<cfset var ReturnStruct = StructNew() />
+		<cfloop condition="#loop()#">
+			<cfif get(arguments.Property) is arguments.Value>
+				<cfset ReturnStruct = variables.BO.getMemento() />
+				<cfbreak />
+			</cfif>
+		</cfloop>
+
+		<cfset setCurrentRow(1) />
+		<cfreturn ReturnStruct />
+	</cffunction>
+		
 	<!--- total rows --->
 	<cffunction name="setTotalRows" access="public" output="false" returntype="this" hint="The total number of rows that *would have* been returned had the source data not been limited by maxrows. This is NOT recordcount of the source data.">
 		<cfargument name="TotalRows" type="numeric" required="true" />
@@ -157,7 +174,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfset variables.i.TotalRows=0 />
 		<cfreturn this />
 	</cffunction>
-	
+
 <!--- * * * * * * * * * *--->
 <!--- * * MANAGEMENT (maybe) * * --->
 <!--- * * * * * * * * * *--->

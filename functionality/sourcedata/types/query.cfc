@@ -65,19 +65,11 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn this />
 	</cffunction>		
 	
-	<!--- get query null value: since adding a query column creates a value for each row, there is no concept of null, like with a struct. So rather than populating every row with a potentially heavy default value (i.e. cfc) when adding a query column, we instead set it to this null value then check for it in 'get' --->
+	<!--- get query null value: since adding a query column creates a value for each row, there is no concept of null, like with a struct. So rather than populating every row with a potentially heavy default value when adding a query column (i.e. a CFC), we instead set it to this null value then check for it in 'get' --->
 	<cffunction name="getQueryNullValue" access="public" output="false" returntype="string">
 		<cfreturn 'loadedobjects-xx-ww-@$-loaded-**-objects-++-loaded-%%-objects' />
 	</cffunction>
-		
-	<!--- seek 
-	<cffunction name="seek" access="public" output="false" returntype="struct">
-		<cfargument name="Row" type="numeric" required="true" />
-<cfdump var="#variables.i.Query[arguments.Row]#">
-<cfabort>
-		<cfreturn variables.i.Query[arguments.Row] />
-	</cffunction>
---->
+
 	<!--- count rows --->
 	<cffunction name="numRows" access="public" output="false" returntype="numeric">
 		<cfreturn variables.i.Query.Recordcount />

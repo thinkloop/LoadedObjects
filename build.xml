@@ -22,6 +22,7 @@
 		<exclude name="**/*.settings**" />
 		<exclude name="**/.externalToolBuilders/**" />
 		
+		<exclude name="**/*.gitignore*" />
 		<exclude name="**/*cvs*" />					
 		<exclude name="**/*build*" />
 		<exclude name="**/*deploy*" />
