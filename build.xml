@@ -17,17 +17,21 @@
 
 	<!-- create complete fileset -->
 	<fileset id="AllFiles" dir="." casesensitive="no">
-		<exclude name="**/*.svn**" />
-		<exclude name="**/*.git**" />
-		<exclude name="**/*.settings**" />
+		<exclude name="**/build.xml**" />
+		<exclude name="**/build.properties**" />
+		<exclude name="**/deploy.xml**" />
+		<exclude name="**/deploy.properties**" />
+			
+		<exclude name="**/.settings/**"/>
 		<exclude name="**/.externalToolBuilders/**" />
+		<exclude name="**/.project**" />
+			
+		<exclude name="**/*.git/**"/>
+		<exclude name="**/*.gitignore**" />
+		<exclude name="**/*.svn/**"/>
 		
-		<exclude name="**/*.gitignore*" />
-		<exclude name="**/*cvs*" />					
-		<exclude name="**/*build*" />
-		<exclude name="**/*deploy*" />
-		<exclude name="**/*svn*" />
-		<exclude name="**/*.project*" />
+		<exclude name="**/*www/**"/>
+		<exclude name="**/*tests/**"/>
 	</fileset>
 	
 	<!-- copy files locally -->
@@ -35,18 +39,9 @@
 		<sync todir="${path.build_railo}" includeEmptyDirs="true" verbose="true">
 			<fileset refid="AllFiles" />
 		</sync>
-		<!--
-		<sync todir="${path.build_openbd}" includeEmptyDirs="true" verbose="true">
-			<fileset refid="AllFiles" />
-		</sync>		
-		 sftp to destination 
-		<scp todir="cftuser@172.16.40.130:/var/lib/tomcat6.0/webapps/openbd" password="cftuser">  
-			<fileset refid="AllFiles" />
-		</scp>
-		-->
 	</target>	
 	
-	<!-- final touches -->
+	<!-- final touches (if any) -->
 	<target name="CompleteLocalBuild" depends="CopyFilesLocally" description="Complete local build">
 	</target> 
 </project>

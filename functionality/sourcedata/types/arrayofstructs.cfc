@@ -24,15 +24,29 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<!--- set value --->
 	<cffunction name="setValue" access="private" output="false" returntype="any">
 		<cfargument name="Name" type="string" required="true" />
-		<cfargument name="Value" type="any" required="true" />	
-		<cfset variables.i.ArrayOfStructs[getCurrentRow()][arguments.Name] = arguments.Value />
+		<cfargument name="Value" type="any" required="true" />
+		<cfargument name="RowNum" type="numeric" default="-1" />
+		
+		<!--- if row num is no good, use current row --->
+		<cfif arguments.RowNum lte 0>
+			<cfset arguments.RowNum = getCurrentRow() />
+		</cfif>
+				
+		<cfset variables.i.ArrayOfStructs[arguments.RowNum][arguments.Name] = arguments.Value />
 		<cfreturn this />
 	</cffunction>
 	
 	<!--- get value --->
 	<cffunction name="getValue" access="private" output="false" returntype="any">
 		<cfargument name="Name" type="string" required="true" />
-		<cfreturn variables.i.ArrayOfStructs[getCurrentRow()][arguments.Name] />
+		<cfargument name="RowNum" type="numeric" default="-1" />
+		
+		<!--- if row num is no good, use current row --->		
+		<cfif arguments.RowNum lte 0>
+			<cfset arguments.RowNum = getCurrentRow() />
+		</cfif>
+		
+		<cfreturn variables.i.ArrayOfStructs[arguments.RowNum][arguments.Name] />
 	</cffunction>	
 	
 	<!--- add column --->
@@ -61,13 +75,13 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn variables.i.ArrayOfStructs[arguments.Row] />
 	</cffunction>
 --->
-	<!--- count rows --->
+	<!--- num rows --->
 	<cffunction name="numRows" access="public" output="false" returntype="numeric">
 		<cfreturn ArrayLen(variables.i.ArrayOfStructs) />
 	</cffunction>
 	
-	<!--- raw --->
+	<!--- raw, untransformed data - should not generally be used/manipulated directly - good for debugging --->
 	<cffunction name="raw" access="public" output="false" returntype="array">
 		<cfreturn variables.i.ArrayOfStructs />
-	</cffunction>	
+	</cffunction>
 </cfcomponent>

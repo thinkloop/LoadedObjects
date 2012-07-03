@@ -19,7 +19,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfset var BO=arguments.BusinessObject />
 
 		<!--- get cf data type --->
-		<cfset var CFDataType=BO.getMetaDataObject().getProperty(arguments.PropertyName, 'Type') />
+		<cfset var CFDataType=BO.getMetaDataObject().getProperties().getAttribute(arguments.PropertyName, 'Type') />
 
 		<!--- init validation result --->
 		<cfset var ValidationResult="" />
@@ -100,12 +100,12 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var MetaData=BO.getMetaDataObject();
 			var ObjectName=BO.getMetaDataObject().getName();
 			var Name=arguments.PropertyName;
-			var DisplayName=MetaData.getProperty(Name, 'DisplayName');
+			var DisplayName=MetaData.getProperties().getAttribute(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
-			var Required=MetaData.getProperty(Name, 'Required');
+			var Required=MetaData.getProperties().getAttribute(Name, 'Required');
 			var isNull=BO.is(Name);
-			var MinValue=MetaData.getProperty(Name, 'MinValue');
-			var MaxValue=MetaData.getProperty(Name, 'MaxValue');
+			var MinValue=MetaData.getProperties().getAttribute(Name, 'MinValue');
+			var MaxValue=MetaData.getProperties().getAttribute(Name, 'MaxValue');
 		</cfscript>
 
 		<!--- init return error --->
@@ -154,13 +154,13 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var MetaData=BO.getMetaDataObject();
 			var ObjectName=BO.getMetaDataObject().getName();
 			var Name=arguments.PropertyName;
-			var DisplayName=MetaData.getProperty(Name, 'DisplayName');
+			var DisplayName=MetaData.getProperties().getAttribute(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
-			var Required=MetaData.getProperty(Name, 'Required');
+			var Required=MetaData.getProperties().getAttribute(Name, 'Required');
 			var isNull=BO.is(Name);
-			var MinValue=MetaData.getProperty(Name, 'MinValue');
-			var MaxValue=MetaData.getProperty(Name, 'MaxValue');
-			var Scale=MetaData.getProperty(Name, 'Scale');
+			var MinValue=MetaData.getProperties().getAttribute(Name, 'MinValue');
+			var MaxValue=MetaData.getProperties().getAttribute(Name, 'MaxValue');
+			var Scale=MetaData.getProperties().getAttribute(Name, 'Scale');
 		</cfscript>
 
 		<!--- init return error --->
@@ -219,9 +219,9 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var MetaData=BO.getMetaDataObject();
 			var ObjectName=BO.getMetaDataObject().getName();
 			var Name=arguments.PropertyName;
-			var DisplayName=MetaData.getProperty(Name, 'DisplayName');
+			var DisplayName=MetaData.getProperties().getAttribute(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
-			var Required=MetaData.getProperty(Name, 'Required');
+			var Required=MetaData.getProperties().getAttribute(Name, 'Required');
 			var isNull=BO.is(Name);
 		</cfscript>
 
@@ -261,12 +261,12 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var MetaData=BO.getMetaDataObject();
 			var ObjectName=BO.getMetaDataObject().getName();
 			var Name=arguments.PropertyName;
-			var DisplayName=MetaData.getProperty(Name, 'DisplayName');
+			var DisplayName=MetaData.getProperties().getAttribute(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
-			var Required=MetaData.getProperty(Name, 'Required');
+			var Required=MetaData.getProperties().getAttribute(Name, 'Required');
 			var isNull=BO.is(Name);
-			var MinValue=MetaData.getProperty(Name, 'MinValue');
-			var MaxValue=MetaData.getProperty(Name, 'MaxValue');
+			var MinValue=MetaData.getProperties().getAttribute(Name, 'MinValue');
+			var MaxValue=MetaData.getProperties().getAttribute(Name, 'MaxValue');
 		</cfscript>
 
 		<!--- init return error --->

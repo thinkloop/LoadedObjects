@@ -25,7 +25,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 
 		<!--- if porperty list is undefined, use all properties --->
 		<cfif not len(FinalPropertyList)>
-			<cfset FinalPropertyList=getMetaDataObject().listProperties() />
+			<cfset FinalPropertyList=getMetaDataObject().getProperties().listPropertyNames() />
 		</cfif>
 
 		<!--- validate each property and save results --->
@@ -50,7 +50,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfset CustomFunction(arguments.PropertyName) />
 
 		<!--- if property is defined in property list, validate it --->
-		<cfelseif listFindNoCase(getMetaDataObject().listProperties(), arguments.PropertyName)>
+		<cfelseif listFindNoCase(getMetaDataObject().getProperties().listPropertyNames(), arguments.PropertyName)>
 		
 			<!--- validate --->
 			<cfset ValidationResult=getLoadedObjects().getPlugin('Validator').validateProperty(this, arguments.PropertyName) />

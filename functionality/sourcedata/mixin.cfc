@@ -48,7 +48,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		
 		<!--- if a real function exists, use it --->
 		<cfif existsFunction(CustomFunctionName)>
-			<cfset CustomFunction=variables[CustomFunctionName] />
+			<cfset CustomFunction=variables[CustomFunctionName] />				
 			<cfreturn CustomFunction() />
 
 		<!--- get property from source data (see abstract_type for this logic) --->
@@ -94,6 +94,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			</cfcase>
 			
 			<!--- if nothing else matches, assumes it's a cfc --->
+			<!--- TODO: catch error if its not a cfc --->
 			<cfdefaultcase>
 				<cfreturn variables.LoadedObjects.newFromPath(variables.Properties.getAttribute(arguments.Name, 'Type')) />
 			</cfdefaultcase>
@@ -111,7 +112,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		</cfif>
 		
 		<!--- set all properties to default --->
-		<cfloop array="#variables.Properties.getPropertyNamesArray()#" index="currentPropertyName">
+		<cfloop array="#variables.Properties.arrayPropertyNames()#" index="currentPropertyName">
 			<cfset set(currentPropertyName, defaultValue(currentPropertyName)) />
 		</cfloop>
 
@@ -149,40 +150,23 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfreturn CustomFunction() />
 
 		<!--- if property is defined in PropertyList, find out if it is null --->
-		<cfelseif variables.Properties.exists(arguments.Name)>
-			<cfreturn isSimpleValue(get(arguments.Name)) AND get(arguments.Name) is variables.getAttribute(arguments.Name, 'NullValue') />
+		<cfelseif variables.Properties.existsProperty(arguments.Name)>
+			<cfreturn get(arguments.Name) neq variables.Properties.getAttribute(arguments.Name, 'NullValue') />
 
 		<!--- otherwise, throw error --->
 		<cfelse>
 			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.isNullValue.UndefinedProperty" message="Could not determine if the property '#UCase(arguments.Name)#' is null because it was not found in component #ucase(variables.MetaDataObject.getPath())#" detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 	</cffunction>
-		
+			
 	<!--- source data --->
 	<cffunction name="setSourceData" access="public" output="false" returntype="any" hint="Set source data by supplying a query or an array-of-structs.">
 		<cfargument name="SourceData" type="any" required="true" hint="struct or query or array-of-structs" />
-		
-		<cfset var EmptyArrayOfStructs = ArrayNew(1) />
-		
-		<!--- instantiate the right object for a query or array-of-structs --->
-		<cfif isQuery(arguments.SourceData)>
-			<cfset variables.SourceData=createObject('component', 'types.query').init(this, arguments.SourceData) />
-		<cfelseif isArray(arguments.SourceData)>
-			<cfset variables.SourceData=createObject('component', 'types.arrayofstructs').init(this, arguments.SourceData) />
-		<cfelseif isStruct(arguments.SourceData)>
-			<cfset ArrayAppend(EmptyArrayOfStructs, arguments.SourceData) />
-			<cfset variables.SourceData=createObject('component', 'types.arrayofstructs').init(this, EmptyArrayOfStructs) />
-		<cfelse>
-			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.seSourceData.InvalidType" message="Could not set 'SOURCEDATA' because the provided type is not supported." detail="Ensure that the provided recordset is a a struct, query or array-of-structs." />
-		</cfif>
-		
+		<cfset variables.SourceData = getLoadedObjects().getPlugin('SourceData').setSourceData(this, arguments.SourceData) />
 		<cfreturn this />
 	</cffunction>
-	<cffunction name="getSourceData" access="public" output="false" returntype="any" hint="Returns instance of sourcedata object">		
-		<cfreturn variables.SourceData />
-	</cffunction>
-		
-	<!--- loop: this will error if source-data isn't set. I am thinking of taking it out in favor of just: getSourceData().loop() --->
+
+	<!--- loop --->
 	<cffunction name="loop" access="public" output="false" returntype="boolean">
 		<cfargument name="Direction" type="string" default="forward" hint="Can be: forward, reverse" />		
 		<cfreturn variables.SourceData.loop(arguments.Direction) />
@@ -210,7 +194,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		
 		<cfreturn variables.SourceData.seek(arguments.Property, arguments.Value) />
 	</cffunction>
-		
+			
 	<!--- list property values --->
 	<cffunction name="listPropertyValues" access="public" output="false" returntype="array">
 		<cfargument name="Name" type="string" required="true" hint="Property/column name" />
@@ -228,7 +212,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfset var currentPropertyName = "" />
 		
 		<!--- set all properties to default --->
-		<cfloop array="#variables.Properties.getPropertyNamesArray()#" index="currentPropertyName">
+		<cfloop array="#variables.Properties.arrayPropertyNames()#" index="currentPropertyName">
 			<cfset ReturnStruct[currentPropertyName] = get(currentPropertyName) />
 		</cfloop>
 		
@@ -257,7 +241,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			</cfif>
 		
 			<!--- loop through this object's properties and set values from struct  --->
-			<cfloop array="#variables.Properties.getPropertyNamesArray()#" index="currentPropertyName">
+			<cfloop array="#variables.Properties.arrayPropertyNames()#" index="currentPropertyName">
 				<cfif StructKeyExists(FinalStruct, currentPropertyName)>			
 					<cfset set(currentPropertyName, FinalStruct[currentPropertyName]) />
 				</cfif>
@@ -275,7 +259,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfset QueryColumns=arguments.Memento.ColumnList />
 			
 			<!--- loop through this object's properties and set values from struct  --->
-			<cfloop array="#variables.Properties.getPropertyNamesArray()#" index="currentPropertyName">
+			<cfloop array="#variables.Properties.arrayPropertyNames()#" index="currentPropertyName">
 				<cfif listFindNoCase(QueryColumns, currentPropertyName)>
 					<cfset set(currentPropertyName, arguments.Memento[currentPropertyName][arguments.Row]) />
 				</cfif>
@@ -289,6 +273,11 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn this />
 	</cffunction>	
 	
+	<!--- raw --->
+	<cffunction name="raw" access="public" output="false" returntype="any">
+		<cfreturn variables.SourceData.raw() />
+	</cffunction>
+		
 	<!--- onMissingMethod: provides generic get/set/isnull functionality without having to write out the functions --->
 	<cffunction name="onMissingMethod" access="public" output="false" returntype="any" hint="Provides generic get/set/is functionality without having to write out the functions">
 		<cfargument name="MissingMethodName" type="string" />
@@ -296,6 +285,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 
 		<cfset var Property="" />
 		<cfset var KeyList="" />
+		<cfset var ReturnVal="" />
 
 		<!--- get --->
 		<cfif left(arguments.MissingMethodName, 3) is 'get'>
@@ -321,7 +311,10 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<!--- is (null) --->
 		<cfelseif Len(arguments.MissingMethodName) gt 2 AND Left(arguments.MissingMethodName, 2) is 'is'>
 			<cfset Property = right(arguments.MissingMethodName, len(arguments.MissingMethodName) - 2) />
-			<cfreturn is(Property) />
-		</cfif>		
+			<cfinvoke method="is" returnvariable="ReturnVal">
+				<cfinvokeargument name="Name" value="#Property#" />
+			</cfinvoke>
+			<cfreturn ReturnVal />
+		</cfif>
 	</cffunction>	
 </cfcomponent>

@@ -26,6 +26,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<cffunction name="set" access="public" output="false" returntype="any">
 		<cfargument name="Name" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
+		<cfargument name="RowNum" type="numeric" default="-1" hint="A value of -1 will use currentRow instead" />		
 
 		<!--- if this property is not supported by this object, throw error --->	
 		<cfif not variables.Properties.existsProperty(arguments.Name)>
@@ -47,16 +48,17 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfif getCurrentRow() lte 0>
 			<cfset setCurrentRow(1) />
 		</cfif>
-	
+		
 		<!--- set the value --->
-		<cfset setValue(arguments.Name, arguments.Value) />
+		<cfset setValue(arguments.Name, arguments.Value, arguments.RowNum) />
 
 		<cfreturn this />
 	</cffunction>
 		
 	<!--- get --->
 	<cffunction name="get" access="public" output="false" returntype="any">
-		<cfargument name="Name" type="string" required="true" />				
+		<cfargument name="Name" type="string" required="true" />
+		<cfargument name="RowNum" type="numeric" default="-1" hint="A value of -1 will use currentRow instead" />	
 
 		<!--- if this property is not supported by this object, throw error --->	
 		<cfif not variables.Properties.existsProperty(arguments.Name)>
@@ -65,12 +67,12 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		
 		<!--- if currentrow is bad or column doesn't exist, set and return default value --->
 		<cfif getCurrentRow() lte 0 OR not existsColumn(arguments.Name)>
-			<cfset set(arguments.Name, variables.BO.defaultValue(arguments.Name)) />
+			<cfreturn variables.BO.defaultValue(arguments.Name) />
 		</cfif>
 		
-		<cfreturn getValue(arguments.Name) />
+		<cfreturn getValue(arguments.Name, arguments.RowNum) />
 	</cffunction>
-	
+		
 	<!--- loop --->
 	<cffunction name="loop" access="public" output="false" returntype="boolean">
 		<cfargument name="Direction" type="string" default="forward" hint="Can be: forward, reverse" />

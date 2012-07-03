@@ -25,18 +25,33 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	<cffunction name="setValue" access="private" output="false" returntype="any">
 		<cfargument name="Name" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
-		<cfset QuerySetCell(variables.i.Query, arguments.Name, arguments.Value, getCurrentRow()) />
+		<cfargument name="RowNum" type="numeric" default="-1" />
+		
+		<!--- if row num is no good, use current row --->		
+		<cfif arguments.RowNum lte 0>
+			<cfset arguments.RowNum = getCurrentRow() />
+		</cfif>
+				
+		<cfset QuerySetCell(variables.i.Query, arguments.Name, arguments.Value, arguments.RowNum) />
 		<cfreturn this />
 	</cffunction>
 	
 	<!--- get value --->
 	<cffunction name="getValue" access="private" output="false" returntype="any">
 		<cfargument name="Name" type="string" required="true" />
-		<cfset var returnValue = variables.i.Query[arguments.Name][getCurrentRow()] />
+		<cfargument name="RowNum" type="numeric" default="-1" />
+		
+		<!--- if row num is no good, use current row --->		
+		<cfif arguments.RowNum lte 0>
+			<cfset arguments.RowNum = getCurrentRow() />
+		</cfif>
+				
+		<cfset var returnValue = variables.i.Query[arguments.Name][arguments.RowNum] />
 		<cfif isSimplevalue(returnValue) AND returnValue is getQueryNullValue()>
 			<cfset returnValue = variables.BO.defaultValue(arguments.Name) />
 			<cfset setValue(arguments.Name, returnValue) />
 		</cfif>
+		
 		<cfreturn returnValue />
 	</cffunction>	
 	
@@ -76,7 +91,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 	</cffunction>
 		
 	<!--- raw --->
-	<cffunction name="raw" access="public" output="false" returntype="query">
+	<cffunction name="raw" access="public" output="false" returntype="any">
 		<cfreturn variables.i.Query />
 	</cffunction>	
 </cfcomponent>

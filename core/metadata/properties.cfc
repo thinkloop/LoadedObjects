@@ -168,9 +168,14 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 08/04/2008
 <!--- * * * * * * * * * * * * * * * * * * * * * * * * * --->
 
 	<!--- array --->
-	<cffunction name="getPropertyNamesArray" access="public" output="false" returntype="array">	
+	<cffunction name="arrayPropertyNames" access="public" output="false" returntype="array">	
 		<cfreturn StructKeyArray(variables.Properties) />
 	</cffunction>
+	
+	<!--- array --->
+	<cffunction name="listPropertyNames" access="public" output="false" returntype="string">	
+		<cfreturn StructKeyList(variables.Properties) />
+	</cffunction>	
 
 	<!--- list 
 	<cffunction name="list" access="public" output="false" returntype="string">
