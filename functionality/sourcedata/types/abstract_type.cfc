@@ -67,7 +67,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		
 		<!--- if currentrow is bad or column doesn't exist, set and return default value --->
 		<cfif getCurrentRow() lte 0 OR not existsColumn(arguments.Name)>
-			<cfreturn variables.BO.defaultValue(arguments.Name) />
+			<cfset set(arguments.Name, variables.BO.defaultValue(arguments.Name)) />
 		</cfif>
 		
 		<cfreturn getValue(arguments.Name, arguments.RowNum) />
