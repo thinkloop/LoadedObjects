@@ -154,7 +154,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfset var ReturnStruct = StructNew() />
 		<cfloop condition="#loop()#">
 			<cfif get(arguments.Property) is arguments.Value>
-				<cfset ReturnStruct = variables.BO.getMemento() />
+				<cfset ReturnStruct = variables.BO.getAll() />
 				<cfbreak />
 			</cfif>
 		</cfloop>

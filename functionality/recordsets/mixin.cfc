@@ -40,7 +40,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			
 		<!--- loop through source data --->
 		<cfloop condition="loop()">
-			<cfset ArrayAppend(val, getMemento()) />
+			<cfset ArrayAppend(val, getAll()) />
 		</cfloop>
 		
 		<cfreturn val />
@@ -57,7 +57,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			
 			<!--- loop through source data --->
 			<cfloop condition="loop()">
-				<cfset current.Struct=getMemento() />
+				<cfset current.Struct=getAll() />
 				<cfset current.Struct['___Type___']=Type />
 				<cfset ArrayAppend(FinalArray, current.Struct) />
 			</cfloop>
@@ -78,7 +78,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			
 			<!--- loop through source data --->
 			<cfloop condition="loop()">
-				<cfset current.Struct=getMemento() />
+				<cfset current.Struct=getAll() />
 				<cfset variables.i.StructOfStructs[current.Struct[arguments.StructKey]]=currentStruct />
 			</cfloop>
 		</cfif>

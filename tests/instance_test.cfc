@@ -106,7 +106,7 @@
 			Struct.Title=Post1.getTitle();
 			Struct.DateCreated=Post1.getDateCreated();
 						
-			Memento=Post2.setMemento(Struct).getMemento();
+			Memento=Post2.setMemento(Struct).getAll();
 
 			assertEquals('#Memento.ID# + #Memento.Title# + #Memento.DateCreated#', '#Post1.getID()# + #Post1.getTitle()# + #Post1.getDateCreated()#');
 		</cfscript>
@@ -134,11 +134,11 @@
 			QuerySetCell(Query, 'DateCreated', Post1.getDateCreated());
 			
 			// assert not equals
-			Memento=Post2.setMemento(Query).getMemento();
+			Memento=Post2.setMemento(Query).getAll();
 			assertNotEquals('#Memento.ID# + #Memento.Title# + #Memento.DateCreated#', '#Post1.getID()# + #Post1.getTitle()# + #Post1.getDateCreated()#');
 			
 			// assert equals
-			Memento=Post2.setMemento(Query, 2).getMemento();
+			Memento=Post2.setMemento(Query, 2).getAll();
 			assertEquals('#Memento.ID# + #Memento.Title# + #Memento.DateCreated#', '#Post1.getID()# + #Post1.getTitle()# + #Post1.getDateCreated()#');
 		</cfscript>
 	</cffunction>
@@ -166,11 +166,11 @@
 			Array[2].DateCreated=Post1.getDateCreated();
 			
 			// assert not equals
-			Memento=Post2.setMemento(Array).getMemento();
+			Memento=Post2.setMemento(Array).getAll();
 			assertNotEquals('#Memento.ID# + #Memento.Title# + #Memento.DateCreated#', '#Post1.getID()# + #Post1.getTitle()# + #Post1.getDateCreated()#');
 			
 			// assert equals
-			Memento=Post2.setMemento(Array, 2).getMemento();
+			Memento=Post2.setMemento(Array, 2).getAll();
 			assertEquals('#Memento.ID# + #Memento.Title# + #Memento.DateCreated#', '#Post1.getID()# + #Post1.getTitle()# + #Post1.getDateCreated()#');
 		</cfscript>
 	</cffunction>

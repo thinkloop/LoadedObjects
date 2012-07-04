@@ -137,7 +137,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		</cfif>
 	</cffunction>	
 
-	<!--- i am the generic version of is[PropertyName]() (isNull() is a reserved function in Railo) --->
+	<!--- whether is null --->
 	<cffunction name="is" access="public" output="false" returntype="boolean">
 		<cfargument name="Name" type="string" />
 
@@ -155,7 +155,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 
 		<!--- otherwise, throw error --->
 		<cfelse>
-			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.isNullValue.UndefinedProperty" message="Could not determine if the property '#UCase(arguments.Name)#' is null because it was not found in component #ucase(variables.MetaDataObject.getPath())#" detail="Ensure that the property is defined, and that it is spelled correctly." />
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.isNullValue.UndefinedProperty" message="The function #CustomFunctionName# does not exist, and property '#(arguments.Name)#' could not be found." />
 		</cfif>
 	</cffunction>
 			
@@ -205,8 +205,8 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		<cfreturn FinalArray />
 	</cffunction>
 		
-	<!--- get memento --->
-	<cffunction name="getMemento" access="public" output="false" returntype="struct">
+	<!--- get all properties --->
+	<cffunction name="getAll" access="public" output="false" returntype="struct">
 		
 		<cfset var ReturnStruct = StructNew() />
 		<cfset var currentPropertyName = "" />
@@ -218,7 +218,9 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 		
 		<cfreturn ReturnStruct />
 	</cffunction>	
-	<cffunction name="setMemento" access="public" output="false" returntype="any">
+	
+	<!--- set all properties --->
+	<cffunction name="setAll" access="public" output="false" returntype="any">
 		<cfargument name="Memento" type="any" required="true" hint="Can be a struct or a query or an array of structs" />
 		<cfargument name="Row" type="numeric" default="1" hint="Specifies which row of the query or array of structs to use to populate the object" />
 
