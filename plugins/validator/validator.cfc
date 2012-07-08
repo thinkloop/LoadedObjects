@@ -99,11 +99,13 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var BO=arguments.BusinessObject;
 			var MetaData=BO.getMetaDataObject();
 			var ObjectName=BO.getMetaDataObject().getName();
+			
 			var Name=arguments.PropertyName;
 			var DisplayName=MetaData.getProperties().getAttribute(Name, 'DisplayName');
-			var Value=BO.get(arguments.PropertyName);
+			var Value=BO.get(Name);
+			
 			var Required=MetaData.getProperties().getAttribute(Name, 'Required');
-			var isNull=BO.is(Name);
+			var isNullValue=BO.is(Name);
 			var MinValue=MetaData.getProperties().getAttribute(Name, 'MinValue');
 			var MaxValue=MetaData.getProperties().getAttribute(Name, 'MaxValue');
 		</cfscript>
@@ -117,10 +119,10 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfset Error.Message="Please provide a valid #DisplayName# in string format." />
 
 		<!--- null is allowed --->
-		<cfelseif isNull AND not Required>
+		<cfelseif isNullValue AND not Required>
 
 		<!--- validate value is provided --->
-		<cfelseif isNull AND Required>
+		<cfelseif isNullValue AND Required>
 			<cfset Error.ErrorCode="#ObjectName#.#Name#.Required" />
 			<cfset Error.Message="Please provide a value for #DisplayName#." />
 
@@ -153,11 +155,13 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var BO=arguments.BusinessObject;
 			var MetaData=BO.getMetaDataObject();
 			var ObjectName=BO.getMetaDataObject().getName();
+			
 			var Name=arguments.PropertyName;
 			var DisplayName=MetaData.getProperties().getAttribute(Name, 'DisplayName');
-			var Value=BO.get(arguments.PropertyName);
+			var Value=BO.get(Name);
+			
 			var Required=MetaData.getProperties().getAttribute(Name, 'Required');
-			var isNull=BO.is(Name);
+			var isNullValue=BO.is(Name);
 			var MinValue=MetaData.getProperties().getAttribute(Name, 'MinValue');
 			var MaxValue=MetaData.getProperties().getAttribute(Name, 'MaxValue');
 			var Scale=MetaData.getProperties().getAttribute(Name, 'Scale');
@@ -172,10 +176,10 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfset Error.Message="Please provide a valid #DisplayName# in numerical format." />
 
 		<!--- null is allowed --->
-		<cfelseif isNull AND not Required>
+		<cfelseif isNullValue AND not Required>
 
 		<!--- null is not allowed --->
-		<cfelseif isNull AND Required>
+		<cfelseif isNullValue AND Required>
 			<cfset Error.ErrorCode="#ObjectName#.#Name#.Required" />
 			<cfset Error.Message="Please provide a value for #DisplayName#." />
 
@@ -222,7 +226,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var DisplayName=MetaData.getProperties().getAttribute(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
 			var Required=MetaData.getProperties().getAttribute(Name, 'Required');
-			var isNull=BO.is(Name);
+			var isNullValue=BO.is(Name);
 		</cfscript>
 
 		<!--- init return error --->
@@ -234,10 +238,10 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfset Error.Message="Please ensure that the value of '#DisplayName#' is 1 or 0." />
 
 		<!--- null is allowed --->
-		<cfelseif isNull AND not Required>
+		<cfelseif isNullValue AND not Required>
 
 		<!--- null is not allowed --->
-		<cfelseif isNull AND Required>
+		<cfelseif isNullValue AND Required>
 			<cfset Error.ErrorCode="#ObjectName#.#Name#.Required" />
 			<cfset Error.Message="Please provide a value for #DisplayName#." />
 
@@ -264,7 +268,7 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			var DisplayName=MetaData.getProperties().getAttribute(Name, 'DisplayName');
 			var Value=BO.get(arguments.PropertyName);
 			var Required=MetaData.getProperties().getAttribute(Name, 'Required');
-			var isNull=BO.is(Name);
+			var isNullValue=BO.is(Name);
 			var MinValue=MetaData.getProperties().getAttribute(Name, 'MinValue');
 			var MaxValue=MetaData.getProperties().getAttribute(Name, 'MaxValue');
 		</cfscript>
@@ -278,10 +282,10 @@ Edited By: Bassil Karam (bassil.karam@thinkloop.com) - 07/06/2008
 			<cfset Error.Message="Please provide a valid #DisplayName# in string format." />
 
 		<!--- null is allowed --->
-		<cfelseif isNull AND not Required>
+		<cfelseif isNullValue AND not Required>
 
 		<!--- null is not allowed --->
-		<cfelseif isNull AND Required>
+		<cfelseif isNullValue AND Required>
 			<cfset Error.ErrorCode="#ObjectName#.#Name#.Required" />
 			<cfset Error.Message="Please provide a value for #DisplayName#." />
 
