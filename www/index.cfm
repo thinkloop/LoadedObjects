@@ -1,16 +1,17 @@
 <!--- setup framework, normally will be done through coldspring --->
 <cfscript>
+	LoadedObjects=createObject('component', 'loadedobjects.loadedobjects').init('loadedObjects.www');
 
-	Plugins=ArrayNew(1);
-	ArrayAppend(Plugins, createObject('component', 'LoadedObjects.plugins.validator.validator').init());
-
-	BusinessObjects=StructNew();
-	BusinessObjects.Post=createObject('component', 'post');
-	BusinessObjects.Comment=createObject('component', 'comment');
-
-	LoadedObjects=createObject('component', 'LoadedObjects.LoadedObjects').init(Plugins=Plugins, BusinessObjects=BusinessObjects);
-
-	Post=LoadedObjects.new('Post');
+	Post=LoadedObjects.new('post');
+	Post2=LoadedObjects.new('post');
+	
+	Post.getViews().hello = 'yes!';	
+	dump(Post.raw());
+	dump(Post.getDateCreated());
+	dump(Post.raw());
+	dump(Post.getAll());
+	dump(Post.raw());
+abort;
 
 /*
 	Post=LoadedObjects.new('Post');
@@ -34,8 +35,9 @@
 	Post.setTitle('Title ##1');
 	Post.setBody('Body ##1');
 	
+	/*
 	Post.getSourceData().addRow();
-	
+	*/
 	Post.setID(2);
 	Post.setDateCreated(now());
 	Post.setTitle('Title ##2');
@@ -53,6 +55,7 @@
 */
 	//Post.setComments(LoadedObjects.new('Comment').setSourceData([{Comment='Comment ##1', Name='Name ##1'}, {Comment='Comment ##2', Name='Name ##2'}, {Comment='Comment ##3', Name='Name ##3'}]));
 </cfscript>
+<cfdump var="#Post.getLoadedObjectsMetadata()#">
 <cfoutput>
 	<div id="Post">
 		#Post.getTitle()#
@@ -64,16 +67,17 @@
 	</div>
 	<hr />
 	<div id="Comments">
+		<!---
 		<cfloop condition="#Post.loop()#">
 			<cfset newQuery = QueryNew('CommentID,Comment') />
-			<cfset Post.getComments2().setSourceData(newQuery) />
+			<cfset Post.getComments().setSourceData(newQuery) />
 			<!---
 			<p>
 				#Post.getComments().getComment()# <strong>by #Post.getComments().getName()#</strong>
 			</p>
 			--->
 		</cfloop>
-<cfdump var="#Post.getSourceData().raw()#">		
+--->
 	</div>
 	<!---
 	<cfdump var="#Post.getSourceData().raw()#">

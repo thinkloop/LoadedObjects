@@ -8,7 +8,7 @@
 		2. Adjust ColdSpring settings: Reload=False, Debug=False, etc.
 
 	DEVELOPED BY
-	Bassil Karam (bassil.karam@t-mobile.com)
+	Baz K. (bassil.karam@t-mobile.com)
 	Jan. 7, 2008
 	-->
 
@@ -30,7 +30,6 @@
 		<exclude name="**/*.gitignore**" />
 		<exclude name="**/*.svn/**"/>
 		
-		<exclude name="**/*www/**"/>
 		<exclude name="**/*tests/**"/>
 	</fileset>
 	

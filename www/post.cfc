@@ -6,18 +6,18 @@
 --->
 <cfcomponent plugins="all" dbname="Post" displayname="Post" output="false">
 	<cfproperty name="ID" dbname="ID" displayname="Post ID" nullvalue="0" />
-	<cfproperty name="DateCreated" dbname="Date_Created" displayname="Date Created" minvalue="12/30/2007" />
+	<cfproperty name="DateCreated" dbname="Date_Created" displayname="Date Created" minvalue="12/30/2007" type="date" />
 	<cfproperty name="Title" dbname="Title" displayname="Title" />
 	<cfproperty name="Body" dbname="Body" displayname="Body" />
-	<cfproperty name="Views" dbname="Views" displayname="Number of Views" />
-	<cfproperty name="Comments2" type="loadedobjects.www.comment" />
+	<cfproperty name="Views" dbname="Views" displayname="Number of Views" type="struct" />
+	<cfproperty name="Shouts" type="array" />
 	
 	<!--- many to one: if 'linkcolumn' is provided, this relationship returns an inline property rather than an object --->
 	<cfproperty name="Category" displayname="Category" 
 		relationship="ManyToOne" with="Category" localkey="CategoryID" foreignkey="CategoryID" />	
 		
 	<!--- one to many: if 'linkcolumn' is provided, this relationship returns an inline list rather than an iterator --->
-	<cfproperty name="Comments" displayname="Comments" 
+	<cfproperty name="Comments" displayname="Comments" type="comment"
 		relationship="OneToMany" with="Comment" localkey="ID" foreignkey="PostID" />
 	
 	<!--- 
