@@ -37,7 +37,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 	
 	<!--- list loaded objects property name --->
 	<cffunction name="listLoadedObjectsPropertyNames" access="public" output="false" returntype="string">
-		<cfargument name="FilterByAttributes" type="struct" default="" hint="A struct of attribute names and values to filter the properties by. A * acts as a wildcard in the string.">
+		<cfargument name="FilterByAttributes" type="struct" default="#StructNew()#" hint="A struct of attribute names and values to filter the properties by. A * acts as a wildcard in the string.">
 		
 		<cfscript>
 			var FilterByAttributes = arguments.FilterByAttributes;

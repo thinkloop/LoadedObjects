@@ -77,7 +77,10 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 			
 			<cfif StructCount(ValidationResult)>
 				<cfset Errors[PropertyName] = ValidationResult />
+			<cfelse>
+				<cfset StructDelete(Errors, PropertyName, false) />
 			</cfif>
+			
 		<!--- otherwise, throw error --->
 		<cfelse>
 			<cfthrow 

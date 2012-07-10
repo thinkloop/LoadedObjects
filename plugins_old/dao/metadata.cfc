@@ -1,4 +1,0 @@
-<cfcomponent output="false">
-
-	<!--- --->
-</cfcomponent>
