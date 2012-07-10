@@ -35,7 +35,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		
 		<!--- if this property is not supported by this object, throw error --->	
 		<cfif not BO.existsLoadedObjectsMetadata(PropertyName)>
-			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Set.UndefinedProperty" message="Could not SET the property #ucase(PropertyName)# because it was not found in component #ucase(variables.BO.getPath())#" detail="Ensure that the property is defined, and that it is spelled correctly." />
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Set.UndefinedProperty" message="Could not SET the property #ucase(PropertyName)# because it was not found in component #ucase(variables.BO.getLoadedObjectsBOPath())#" detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 		
 		<!--- if column does not exist, create it --->
@@ -73,7 +73,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 
 		<!--- if this property is not supported by this object, throw error --->	
 		<cfif not BO.existsLoadedObjectsMetadata(PropertyName)>			
-			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Get.UndefinedProperty" message="Could not get the property '#UCase(PropertyName)#' from component '#UCase(BO.getPath())#'." detail="Ensure that the property is defined, and that it is spelled correctly." />
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Get.UndefinedProperty" message="Could not get the property '#UCase(PropertyName)#' from component '#UCase(BO.getLoadedObjectsBOPath())#'." detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 		
 		<!--- if currentrow is bad or column doesn't exist, set and return default value --->

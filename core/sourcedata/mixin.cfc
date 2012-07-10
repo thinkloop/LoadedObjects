@@ -16,14 +16,14 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 	<cffunction name="setSourceData" access="public" output="false" returntype="any" hint="Returns source data based on what raw data was supplied.">
 		<cfargument name="Raw" type="any" required="true" hint="struct or query or array-of-structs" />
 		
-		<cfset variables.SourceData = '' />
+		<cfset variables.LoadedObjects.SourceData = '' />
 		
 		<cfif isQuery(arguments.Raw)>
-			<cfset variables.SourceData = createObject('component', 'types.query').init(this, arguments.Raw) />
+			<cfset variables.LoadedObjects.SourceData = createObject('component', 'types.query').init(this, arguments.Raw) />
 		<cfelseif isArray(arguments.Raw)>
-			<cfset variables.SourceData = createObject('component', 'types.arrayofstructs').init(this, arguments.Raw) />
+			<cfset variables.LoadedObjects.SourceData = createObject('component', 'types.arrayofstructs').init(this, arguments.Raw) />
 		<cfelseif isStruct(arguments.Raw)>
-			<cfset variables.SourceData = createObject('component', 'types.arrayofstructs').init(this, [arguments.Raw]) />
+			<cfset variables.LoadedObjects.SourceData = createObject('component', 'types.arrayofstructs').init(this, [arguments.Raw]) />
 		<cfelse>
 			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.seSourceData.InvalidType" message="Could not set 'SOURCEDATA' because RAW is not of a supported type." detail="Ensure that the provided recordset is a a struct, query or array-of-structs." />
 		</cfif>
@@ -31,6 +31,11 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		<cfreturn this />
 	</cffunction>
 	
+	<!--- get source data --->
+	<cffunction name="getSourceData" access="public" output="false" returntype="any">
+		<cfreturn variables.LoadedObjects.SourceData />
+	</cffunction>
+		
 <!--- * * * * * * * * *--->
 <!--- * * INSTANCE * * --->
 <!--- * * * * * * * * *--->
@@ -50,7 +55,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 
 		<!--- otherwise, set it --->
 		<cfelse>	
-			<cfset variables.SourceData.set(arguments.PropertyName, arguments.Value) />
+			<cfset getSourceData().set(arguments.PropertyName, arguments.Value) />
 		</cfif>
 
 		<cfreturn this />
@@ -70,15 +75,15 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 
 		<!--- get property from source data (see abstract_type for this logic) --->
 		<cfelse>
-			<cfreturn variables.SourceData.get(arguments.PropertyName) />
+			<cfreturn getSourceData().get(arguments.PropertyName) />
 		</cfif>	
 	</cffunction>
 	
 	<!--- is null --->
 	<cffunction name="is" access="public" output="false" returntype="boolean">
-		<cfargument name="Name" type="string" />
+		<cfargument name="PropertyName" type="string" />
 
-		<cfset var CustomFunctionName = "is#arguments.Name#" />
+		<cfset var CustomFunctionName = "is#arguments.PropertyName#" />
 		<cfset var CustomFunction = "" />
 
 		<!--- if a real function exists, use it --->
@@ -87,12 +92,12 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 			<cfreturn CustomFunction() />
 
 		<!--- if property is defined in PropertyList, find out if it is null --->
-		<cfelseif existsLoadedObjectsMetadata(arguments.Name)>
-			<cfreturn get(arguments.Name) neq getLoadedObjectsMetadata(arguments.Name, 'NullValue') />
+		<cfelseif existsLoadedObjectsMetadata(arguments.PropertyName)>
+			<cfreturn get(arguments.PropertyName) neq getLoadedObjectsMetadata(arguments.PropertyName, 'NullValue') />
 
 		<!--- otherwise, throw error --->
 		<cfelse>
-			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.isNullValue.UndefinedProperty" message="The function #CustomFunctionName# does not exist, and property '#(arguments.Name)#' could not be found." />
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.isNullValue.UndefinedProperty" message="The function #CustomFunctionName# does not exist, and property '#(arguments.PropertyName)#' could not be found." />
 		</cfif>
 	</cffunction>
 	
@@ -121,22 +126,22 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 	<!--- loop --->
 	<cffunction name="loop" access="public" output="false" returntype="boolean">
 		<cfargument name="Direction" type="string" default="forward" hint="Can be: forward, reverse" />		
-		<cfreturn variables.SourceData.loop(arguments.Direction) />
+		<cfreturn getSourceData().loop(arguments.Direction) />
 	</cffunction>
 	
 	<!--- current row  --->
 	<cffunction name="getCurrentRow" access="public" output="false" returntype="numeric" hint="Returns the current row">
-		<cfreturn variables.SourceData.getCurrentRow() />
+		<cfreturn getSourceData().getCurrentRow() />
 	</cffunction>
 	
 	<!--- num rows --->
 	<cffunction name="numRows" access="public" output="false" returntype="numeric">
-		<cfreturn variables.SourceData.numRows() />
+		<cfreturn getSourceData().numRows() />
 	</cffunction>	
 		
 	<!--- has rows --->
 	<cffunction name="hasRows" access="public" output="false" returntype="boolean">
-		<cfreturn variables.SourceData.numRows() gt 0 />
+		<cfreturn getSourceData().numRows() gt 0 />
 	</cffunction>
 	
 	<!--- seek: moves the cursor to a specific row based on a value of a given property. If the value is not unique within the sourcedata, it will move to the first instance of the value. This was intended for use with primary keys. --->
@@ -144,17 +149,17 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
 		
-		<cfreturn variables.SourceData.seek(arguments.PropertyName, arguments.Value) />
+		<cfreturn getSourceData().seek(arguments.PropertyName, arguments.Value) />
 	</cffunction>
 			
 	<!--- list property values --->
-	<cffunction name="listPropertyValues" access="public" output="false" returntype="array">
-		<cfargument name="Name" type="string" required="true" hint="Property/column name" />
-		<cfset FinalArray = ArrayNew(1) />
+	<cffunction name="listPropertyValues" access="public" output="false" returntype="string">
+		<cfargument name="PropertyName" type="string" required="true" hint="Property/column name" />
+		<cfset PropertyNameList = '' />
 		<cfloop condition="#loop()#">
-			<cfset ArrayAppend(FinalArray, get(arguments.Name)) />
+			<cfset ListAppend(PropertyNameList, get(arguments.PropertyName)) />
 		</cfloop>
-		<cfreturn FinalArray />
+		<cfreturn PropertyNameList />
 	</cffunction>
 		
 	<!--- get all properties --->
@@ -233,7 +238,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		</cfscript>
 		
 		<!--- init source data --->
-		<cfif not isObject(variables.SourceData)>
+		<cfif not isObject(getSourceData())>
 			<cfset setSourceData(StructNew()) />			
 		</cfif>
 		
@@ -247,7 +252,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		
 	<!--- raw --->
 	<cffunction name="raw" access="public" output="false" returntype="any">
-		<cfreturn variables.SourceData.raw() />
+		<cfreturn getSourceData().raw() />
 	</cffunction>
 		
 	<!--- onMissingMethod: provides generic get/set/isnull functionality without having to write out the functions --->
@@ -256,40 +261,54 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		<cfargument name="MissingMethodArguments" type="struct" />
 		
 		<cfscript>
+			var MissingMethodName = arguments.MissingMethodName;
+			var MissingMethodArguments = arguments.MissingMethodArguments;
+			var MissingMethodNameLength = Len(MissingMethodName);
+			
 			var PropertyName = '';
 			var KeyList = '';
 			var ReturnVal = '';
+			
+			var GetPrefix = 'get';
+			var SetPrefix = 'set';
+			var DisplayPrefix = 'display';
+			var IsPrefix = 'is';
+			
+			var GetPrefixLength = Len(GetPrefix);
+			var SetPrefixLength = Len(SetPrefix);
+			var DisplayPrefixLength = Len(DisplayPrefix);
+			var IsPrefixLength = Len(IsPrefix);
 		</cfscript>
 
 		<!--- get --->
-		<cfif left(arguments.MissingMethodName, 3) is 'get'>
-			<cfset PropertyName = right(arguments.MissingMethodName, len(arguments.MissingMethodName) - 3) />
+		<cfif MissingMethodNameLength gt GetPrefixLength AND Left(MissingMethodName, GetPrefixLength) is GetPrefix>
+			<cfset PropertyName = Right(MissingMethodName, MissingMethodNameLength - GetPrefixLength) />
 			<cfreturn get(PropertyName) />
 
 		<!--- set --->
-		<cfelseif left(arguments.MissingMethodName, 3) is 'set'>
-			<cfset PropertyName = right(arguments.MissingMethodName, len(arguments.MissingMethodName) - 3) />
-			<cfset KeyList = StructKeyList(arguments.missingMethodArguments) />
+		<cfelseif MissingMethodNameLength gt SetPrefixLength AND Left(MissingMethodName, SetPrefixLength) is SetPrefix>
+			<cfset PropertyName = Right(MissingMethodName, MissingMethodNameLength - SetPrefixLength) />
+			<cfset KeyList = StructKeyList(MissingMethodArguments) />
 
-			<cfif listlen(KeyList)>
-				<cfreturn set(PropertyName, arguments.missingMethodArguments[listfirst(KeyList)]) />
+			<cfif ListLen(KeyList)>
+				<cfreturn set(PropertyName, MissingMethodArguments[listfirst(KeyList)]) />
 			<cfelse>
 				<cfreturn set(PropertyName, '') />
 			</cfif>
 
 		<!--- display --->
-		<cfelseif left(arguments.MissingMethodName, 7) is 'display'>
-			<cfset PropertyName = right(arguments.MissingMethodName, len(arguments.MissingMethodName) - 7) />
+		<cfelseif MissingMethodNameLength gt DisplayPrefixLength AND Left(MissingMethodName, DisplayPrefixLength) is DisplayPrefix>
+			<cfset PropertyName = Right(MissingMethodName, MissingMethodNameLength - DisplayPrefixLength) />
 			<cfreturn display(PropertyName) />
 			
 		<!--- is (null) --->
-		<cfelseif Len(arguments.MissingMethodName) gt 2 AND Left(arguments.MissingMethodName, 2) is 'is'>
-	
-			<cfset PropertyName = right(arguments.MissingMethodName, len(arguments.MissingMethodName) - 2) />
+		<cfelseif MissingMethodNameLength gt IsPrefixLength AND Left(MissingMethodName, IsPrefixLength) is IsPrefix>
+			<cfset PropertyName = Right(MissingMethodName, MissingMethodNameLength - IsPrefixLength) />
 			<cfinvoke method="is" returnvariable="ReturnVal">
-				<cfinvokeargument name="Name" value="#PropertyName#" />
+				<cfinvokeargument name="PropertyName" value="#PropertyName#" />
 			</cfinvoke>
 			<cfreturn ReturnVal />
 		</cfif>
 	</cffunction>	
+	
 </cfcomponent>

@@ -6,12 +6,13 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 	
 	<!--- init --->
 	<cffunction name="init" access="public" output="false" returntype="any">
-		<cfargument name="LoadedObjects" type="any" required="true" />
-		<cfargument name="LoadedObjectsBOPath" type="string" required="true" />
+		<cfargument name="LoadedObjectsFW" type="any" required="true" hint="Reference to the main LoadedObjects fw instance (i.e. instance of /loadedobjects/loadedobjects.cfc)." />
+		<cfargument name="LoadedObjectsBOPath" type="string" required="true" hint="Dot-notation path to the BO being init'ed that LoadedObjects used to look it up." />
 	
 		<cfscript>
-			variables.LoadedObjects = arguments.LoadedObjects;
-			variables.LoadedObjectsBOPath = arguments.LoadedObjectsBOPath;
+			variables.LoadedObjects = StructNew();
+			variables.LoadedObjects.FW = arguments.LoadedObjectsFW;
+			variables.LoadedObjects.BOPath = arguments.LoadedObjectsBOPath;
 		</cfscript>
 		
 		<cfreturn this />
@@ -19,27 +20,39 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 
 	<!--- get loaded objects --->
 	<cffunction name="getLoadedObjects" access="public" output="false" returntype="any">
-		<cfreturn variables.LoadedObjects />
+		<cfreturn variables.LoadedObjects.FW />
 	</cffunction>
 	
-	<!--- get path --->
-	<cffunction name="getPath" access="public" output="false" returntype="string">
-		<cfreturn variables.LoadedObjectsBOPath />
+	<!--- get loaded objects name --->
+	<cffunction name="getLoadedObjectsBOPath" access="public" output="false" returntype="string">
+		<cfreturn variables.LoadedObjects.BOPath />
 	</cffunction>	
 	
 	<!--- get loaded objects metadata --->
 	<cffunction name="getLoadedObjectsMetadata" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" default="" hint="If no property name is provided, returns metadata for all properties of specified object." />
 		<cfargument name="AttributeName" type="string" default="" hint="If no attribute name is provided, returns metadata for all attributes of specified property." />
-		<cfreturn variables.LoadedObjects.get(variables.LoadedObjectsBOPath, arguments.PropertyName, arguments.AttributeName) />
+		<cfreturn variables.LoadedObjects.FW.get(variables.LoadedObjects.BOPath, arguments.PropertyName, arguments.AttributeName) />
 	</cffunction>
+	
+	<!--- list loaded objects property name --->
+	<cffunction name="listLoadedObjectsPropertyNames" access="public" output="false" returntype="string">
+		<cfreturn StructKeyList(getLoadedObjectsMetadata().Properties) />
+	</cffunction>	
 	
 	<!--- exists loaded object metadata --->
 	<cffunction name="existsLoadedObjectsMetadata" access="public" output="false" returntype="boolean">
 		<cfargument name="PropertyName" type="string" default="" hint="If no property name is provided, returns metadata for all properties of specified object." />
 		<cfargument name="AttributeName" type="string" default="" hint="If no attribute name is provided, returns metadata for all attributes of specified property." />
-		<cfreturn variables.LoadedObjects.exists(variables.LoadedObjectsBOPath, arguments.PropertyName, arguments.AttributeName) />
+		<cfreturn variables.LoadedObjects.FW.exists(variables.LoadedObjects.BOPath, arguments.PropertyName, arguments.AttributeName) />
 	</cffunction>
+	
+	<!--- get loaded objects plugin --->
+	<cffunction name="getLoadedObjectsPlugin" access="public" output="false" returntype="any">
+		<cfargument name="PluginName" type="string" required="true" />
+		<cfreturn variables.LoadedObjects.FW.getPlugin(arguments.PluginName) />
+	</cffunction>	
+	
 	
 	<!--- exists Function --->
 	<cffunction name="existsFunction" access="public" output="false" returntype="boolean">
@@ -65,7 +78,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		<cfargument name="MissingMethodArguments" type="struct" />
 		
 		<cfscript>
-			var OnMissingMethodFunctions = variables.LoadedObjects.getPlugin('core.Base').getOnMissingMethodFunctions();
+			var OnMissingMethodFunctions = variables.LoadedObjects.FW.getPlugin('Base').getOnMissingMethodFunctions();
 			var current=StructNew();
 			current.FunctionInstance='';
 			current.ReturnValue='';
