@@ -53,7 +53,7 @@ abort;
 	QuerySetCell(tmpQuery, 'Comment', 'Comment ##3');
 	QuerySetCell(tmpQuery, 'Name', 'Name ##3');
 */
-	//Post.setComments(LoadedObjects.new('Comment').setSourceData([{Comment='Comment ##1', Name='Name ##1'}, {Comment='Comment ##2', Name='Name ##2'}, {Comment='Comment ##3', Name='Name ##3'}]));
+	//Post.setComments(LoadedObjects.new('Comment').setRawData([{Comment='Comment ##1', Name='Name ##1'}, {Comment='Comment ##2', Name='Name ##2'}, {Comment='Comment ##3', Name='Name ##3'}]));
 </cfscript>
 <cfdump var="#Post.getLoadedObjectsMetadata()#">
 <cfoutput>
@@ -70,7 +70,7 @@ abort;
 		<!---
 		<cfloop condition="#Post.loop()#">
 			<cfset newQuery = QueryNew('CommentID,Comment') />
-			<cfset Post.getComments().setSourceData(newQuery) />
+			<cfset Post.getComments().setRawData(newQuery) />
 			<!---
 			<p>
 				#Post.getComments().getComment()# <strong>by #Post.getComments().getName()#</strong>

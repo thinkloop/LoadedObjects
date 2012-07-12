@@ -24,13 +24,16 @@
 				variables.ObjectPathPrefix = arguments.ObjectPathPrefix & '.';
 			}
 
-			// add base plugin manually because adding the other plugins relies on it
+			// add base plugin manually because other plugins depend on it
 			variables.Plugins['base'] = StructNew();
 			variables.Plugins['base']['Mixin'] = CreateObject('component', 'core.base.mixin');
 			variables.Plugins['base']['Service'] = CreateObject('component', 'core.base.service').init(this);
 
+			// add collection plugin manually
+			addPlugin('core.collection');
+			
 			// add source data plugin manually
-			addPlugin('core.sourcedata');
+			addPlugin('core.rawdata');
 		</cfscript>
 
 		<!--- loop through plugin subfolders and add each as a plugin --->
@@ -95,7 +98,7 @@
 					</cfif>
 
 					<!--- if default value exists, return it --->
-					<cfif exists(ObjectPath, PropertyName, 'Default')>
+					<cfif StructKeyExists(LoadedObjectsMetadata[ObjectPathPlusPrefix]['Properties'][PropertyName], 'Default')>
 						<cfreturn LoadedObjectsMetadata[ObjectPathPlusPrefix]['Properties'][PropertyName]['Default'] />
 					</cfif>
 
@@ -191,11 +194,11 @@
 			<cfset collection = collection[arguments.PropertyName] />
 		</cfif>
 
-		<!--- attribute name--->
-		<cfif not StructKeyExists(collection, arguments.AttributeName)>
-			<cfreturn false />
-		<cfelse>
+		<!--- attribute name - the attribute 'default' is special and should always return true --->
+		<cfif arguments.AttributeName is 'Default' OR StructKeyExists(collection, arguments.AttributeName)>
 			<cfreturn true />
+		<cfelse>
+			<cfreturn false />
 		</cfif>
 	</cffunction>
 
@@ -277,6 +280,7 @@
 					LoadedObjectsProperties[currentProperty.Name]['NullValue'] = '';
 					LoadedObjectsProperties[currentProperty.Name]['Position'] = currentPropertyIndex;
 					//LoadedObjectsProperties[currentProperty.Name]['ReadOnly'] = False;
+					LoadedObjectsProperties[currentProperty.Name]['IsObject'] = False;
 				</cfscript>
 
 				<!--- loop through and add real attributes, possibly overriding defaults set above --->
@@ -284,11 +288,15 @@
 					<cfset LoadedObjectsProperties[currentProperty.Name][currentAttributeName] = currentProperty[currentAttributeName] />
 				</cfloop>
 
-				<!--- check for relationship to another object
-				<cfif ListFindNoCase(StructKeyList(arguments.BusinessObjects), MetadataProperties.get('Type'))>
-					<cfset MetadataProperties.setAttribute('LoadedObjectsType', MetadataProperties.get('Type')) />
-				</cfif>
-				--->
+				<!--- check if this property points to another object --->
+				<cfswitch expression="#LoadedObjectsProperties[currentProperty.Name]['Type']#">
+					<cfcase value="string,any,binary,variableName,uuid,guid"></cfcase>
+					<cfcase value="numeric,boolean,date"></cfcase>
+					<cfcase value="struct,array,query"></cfcase>
+					<cfdefaultcase>
+						<cfset LoadedObjectsProperties[currentProperty.Name]['IsObject'] = true />
+					</cfdefaultcase>
+				</cfswitch>				
 			</cfloop>
 		</cfif>
 
