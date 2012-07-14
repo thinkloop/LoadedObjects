@@ -15,21 +15,41 @@
 			var BO = arguments.BO;
 			var PropertyName = arguments.PropertyName;
 			var Value = arguments.Value;
+
+			var HasBeenSet = BO.getHasBeenSet();
+			
+			var ListOfLinkedObjects = '';
+			var currentLinkedObjectName = '';
+			var LinkedObject = '';
+			var FragmentName = '';
 		</cfscript>
 
-		<!--- if property does not exist, error --->
+		<!--- if property does not exist, check if it is trying to call a property on a child object --->
 		<cfif not BO.existsLoadedObjectsMetadata(PropertyName)>
-			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Set.UndefinedProperty" message="Could not set property '#UCase(PropertyName)#' in component '#UCase(BO.getLoadedObjectsBOPath())#'." detail="Ensure that the property is defined, and that it is spelled correctly." />
-		</cfif>
+			<cfset ListOfLinkedObjects = BO.listLoadedObjectsPropertyNames({ IsObject : true }) />
+			<cfloop list="#ListOfLinkedObjects#" index="currentLinkedObjectName">
 
-		<!--- if there are no rows, add one --->
-		<cfif BO.numRows() lte 0>
-			<cfset addRow(BO) />
-			<cfset BO.setCurrentRow(1) />
+				<!--- check if the property partly matches one of its linked object names --->
+				<cfif Len(PropertyName) gt Len(currentLinkedObjectName) AND Left(PropertyName, Len(currentLinkedObjectName)) is currentLinkedObjectName>
+					<cfset LinkedObject = get(BO, currentLinkedObjectName) />
+					<cfset FragmentName = Right(PropertyName, Len(PropertyName) - Len(currentLinkedObjectName)) />
+
+					<!--- the 'return' statement wrapped in the try/catch runs this 'set' function recursively, digging deeper into each child component until it finds the property it's looking for - or not. When it doesn't find the property, rather than error out, we prefer to continue looping and trying other sub-objects. If nothing is found after that, an error will be thrown below. --->
+					<cftry>
+						<cfreturn set(LinkedObject, FragmentName, Value) />
+						<cfcatch type="LoadedObjects"><!--- do nothing ---></cfcatch>
+					</cftry>
+				</cfif>
+			</cfloop>
+
+			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Set.UndefinedProperty" message="Could not set property '#UCase(PropertyName)#' in component '#UCase(BO.getLoadedObjectsBOPath())#'." detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 
 		<!--- set the value --->
 		<cfset setRaw(BO, PropertyName, Value, BO.getCurrentRow()) />
+
+		<!--- mark has been set --->
+		<cfset HasBeenSet[BO.getCurrentRow()][PropertyName] = true />
 
 		<cfreturn BO />
 	</cffunction>
@@ -42,16 +62,48 @@
 		<cfscript>
 			var BO = arguments.BO;
 			var PropertyName = arguments.PropertyName;
+			var HasBeenSet = BO.getHasBeenSet();
+			var RawValue = '';
+
+			var ListOfLinkedObjects = '';
+			var currentLinkedObjectName = '';
+			var LinkedObject = '';
+			var FragmentName = '';
 		</cfscript>
 
-		<!--- if property does not exist, error --->
+		<!--- if property does not exist, check if it is trying to call a property on a child object --->
 		<cfif not BO.existsLoadedObjectsMetadata(PropertyName)>
+			<cfset ListOfLinkedObjects = BO.listLoadedObjectsPropertyNames({ IsObject : true }) />
+
+			<cfloop list="#ListOfLinkedObjects#" index="currentLinkedObjectName">
+
+				<!--- check if the property partly matches one of its linked object names --->
+				<cfif Len(PropertyName) gt Len(currentLinkedObjectName) AND Left(PropertyName, Len(currentLinkedObjectName)) is currentLinkedObjectName>
+					<cfset LinkedObject = get(BO, currentLinkedObjectName) />
+					<cfset FragmentName = Right(PropertyName, Len(PropertyName) - Len(currentLinkedObjectName)) />
+
+					<!--- the 'return' statement wrapped in the try/catch runs this 'get' function recursively, digging deeper into each child component until it finds the property it's looking for - or not. When it doesn't find the property, rather than error out, we prefer to continue looping and trying other sub-objects. If nothing is found after that, an error will be thrown below. --->
+					<cftry>
+						<cfreturn get(LinkedObject, FragmentName) />
+						<cfcatch type="LoadedObjects"><!--- do nothing ---></cfcatch>
+					</cftry>
+				</cfif>
+			</cfloop>
+
 			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Get.UndefinedProperty" message="Could not get property '#UCase(PropertyName)#' from component '#UCase(BO.getLoadedObjectsBOPath())#'." detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 
-		<!--- if column doesn't exist, set default value --->
-		<cfif not existsColumn(BO, PropertyName, BO.getCurrentRow())>
-			<cfset set(BO, PropertyName, BO.getLoadedObjectsMetadata(PropertyName, 'Default')) />
+		<!--- if property has never run through the set routine, set it now to itself so that the raw value is processed --->
+		<cfif not hasBeenSetProperty(BO, PropertyName, BO.getCurrentRow())>
+			<cfscript>
+				RawValue = getRaw(BO, PropertyName, BO.getCurrentRow());
+
+				if (RawValue is '') {
+					RawValue = BO.getLoadedObjectsMetadata(PropertyName, 'Default');
+				}
+
+				set(BO, PropertyName, RawValue)
+			</cfscript>
 		</cfif>
 
 		<cfreturn getRaw(BO, PropertyName, BO.getCurrentRow()) />
@@ -67,7 +119,6 @@
 			var PropertyName = arguments.PropertyName;
 		</cfscript>
 
-		<!--- if property is defined in PropertyList, find out if it is null --->
 		<cfif not existsLoadedObjectsMetadata(PropertyName)>
 			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.isNullValue.UndefinedProperty" message="The function #CustomFunctionName# does not exist, and property '#(PropertyName)#' could not be found." />
 		</cfif>
@@ -83,7 +134,7 @@
 		<cfscript>
 			var BO = arguments.BO;
 			var Direction = arguments.Direction;
-			var CurrentRow = BO.getCurrentRow(true);
+			var CurrentRow = BO.getCurrentRow(false);
 			var TotalNumRows = BO.numRows();
 		</cfscript>
 
@@ -108,7 +159,7 @@
 
 		<!--- forward --->
 		<cfelse>
-		
+
 			<!--- if current row is bad, restart loop --->
 			<cfif CurrentRow lt 1 OR CurrentRow gt TotalNumRows>
 				<cfset BO.setCurrentRow(1) />
@@ -132,7 +183,7 @@
 	<!--- get all values for all properties --->
 	<cffunction name="getAll" access="public" output="false" returntype="struct">
 		<cfargument name="BO" type="any" required="true" />
-		
+
 		<cfscript>
 			var BO = arguments.BO;
 			var Properties = BO.getLoadedObjectsMetadata().Properties;
@@ -158,64 +209,42 @@
 			var Properties = BO.getLoadedObjectsMetadata().Properties;
 			var RawData = arguments.RawData;
 			var Row = arguments.Row;
-			
-			var CleanStructForPopulation = '';
-			var QueryColumns = '';
 
+			var CleanRawData = '';
+			var QueryColumns = '';
 			var currentPropertyName = '';
-			
-			/*
-			var SubObjectPropertyNames = listLoadedObjectsPropertyNames({ IsObject : true });
-			var currentSubObjectPropertyName = '';
-			var currentLeftOfPropertyName = '';
-			var currentRightOfPropertyName = '';
-			*/
 		</cfscript>
-		
+
 		<!--- if is struct or array of structs --->
 		<cfif isStruct(RawData) OR isArray(RawData)>
 
 			<!--- if is struct, use it --->
 			<cfif isStruct(RawData)>
-				<cfset CleanStructForPopulation = RawData />
+				<cfset CleanRawData = RawData />
 
 			<!--- if is array get the struct out --->
 			<cfelse>
-				<cfset CleanStructForPopulation = RawData[Row]>
+				<cfset CleanRawData = RawData[Row]>
 			</cfif>
 
 			<!--- loop through this object's properties and set values from struct  --->
-			<cfloop collection="#Properties#" item="currentPropertyName">
-				<cfif StructKeyExists(CleanStructForPopulation, currentPropertyName)>
-					<cfset BO.set(currentPropertyName, CleanStructForPopulation[currentPropertyName]) />
-
-				<!--- check if property can be used to populate a sub-object's property --->
-				<cfelse>
-				<!---
-					<cfloop list="#SubObjectPropertyNames#" index="currentSubObjectPropertyName">
-						<cfset currentLeftOfPropertyName = Left(currentPropertyName, Len(currentSubObjectPropertyName)) />
-
-						<!--- if current property matches a sub-object property, set it --->
-						<cfif Len(currentPropertyName) gt Len(currentSubObjectPropertyName) AND currentLeftOfPropertyName is currentSubObjectPropertyName>
-							<cfset currentRightOfPropertyName = Right(currentPropertyName, Len(currentPropertyName) - Len(currentSubObjectPropertyName)) />
-							<cfif get(currentSubObjectPropertyName).existsLoadedObjectsMetadata(currentRightOfPropertyName)>
-								<cfset get(currentSubObjectPropertyName).set(currentRightOfPropertyName, CleanStructForPopulation[currentPropertyName]) />
-							</cfif>
-						</cfif>
-					</cfloop>	
-				--->	
-				</cfif>
+			<cfloop collection="#CleanRawData#" item="currentPropertyName">
+				<cftry>
+					<cfset BO.set(currentPropertyName, CleanRawData[currentPropertyName]) />
+					<cfcatch type="LoadedObjects"><!--- do nothing ---></cfcatch>
+				</cftry>
 			</cfloop>
 
 		<!--- if is query --->
 		<cfelseif isQuery(RawData)>
 			<cfset QueryColumns = RawData.ColumnList />
 
-			<!--- loop through this object's properties and set values from struct  --->
-			<cfloop collection="#Properties#" item="currentPropertyName">
-				<cfif listFindNoCase(QueryColumns, currentPropertyName)>
+			<!--- loop through rawdata and set values from query row  --->
+			<cfloop list="#QueryColumns#" index="currentPropertyName">
+				<cftry>
 					<cfset BO.set(currentPropertyName, RawData[currentPropertyName][Row]) />
-				</cfif>
+					<cfcatch type="LoadedObjects"><!--- do nothing ---></cfcatch>
+				</cftry>
 			</cfloop>
 
 		<!--- otherwise error --->
@@ -225,7 +254,52 @@
 
 		<cfreturn BO />
 	</cffunction>
-	
+
+	<!--- create raw data --->
+	<cffunction name="createRawData" access="public" output="false" returntype="any" hint="Set appropriate raw data manager based on provided raw type.">
+		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="RawData" type="any" default="#StructNew()#" hint="Struct or query or array-of-structs" />
+
+		<cfscript>
+			var BO = arguments.BO;
+			var RawData = arguments.RawData;
+
+			BO.setCurrentRow(0);
+			BO.clearHasBeenSet();
+		</cfscript>
+
+		<cfif IsQuery(RawData)>
+			<cfreturn createObject('component', 'types.query').init(RawData) />
+		<cfelseif IsArray(RawData) AND ArrayLen(RawData) AND IsStruct(RawData[1])>
+			<cfreturn createObject('component', 'types.arrayofstructs').init(RawData) />
+		<cfelseif IsStruct(RawData)>
+			<cfreturn createObject('component', 'types.arrayofstructs').init([RawData]) />
+		<cfelse>
+			<cfreturn createObject('component', 'types.arrayofstructs').init([StructNew()]) />
+		</cfif>
+	</cffunction>
+
+<!--- * * * * * * * --->
+<!--- * * UTILS * * --->
+<!--- * * * * * * * --->
+
+	<!--- has been set property --->
+	<cffunction name="hasBeenSetProperty" access="private" output="false" returntype="boolean">
+		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="PropertyName" type="string" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
+
+		<cfscript>
+			var BO = arguments.BO;
+			var PropertyName = arguments.PropertyName;
+			var CurrentRow = arguments.RowNum;
+
+			var HasBeenSet = BO.getHasBeenSet();
+		</cfscript>
+
+		<cfreturn StructKeyExists(HasBeenSet, CurrentRow) AND StructKeyExists(HasBeenSet[CurrentRow], PropertyName) AND HasBeenSet[CurrentRow][PropertyName] />
+	</cffunction>
+
 <!--- * * * * * * * * * * *--->
 <!--- * * DATA MANAGER * * --->
 <!--- * * * * * * * * * * *--->
@@ -246,14 +320,6 @@
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="RowNum" type="numeric" required="true" />
 		<cfreturn arguments.BO.getRawDataManager().getRaw(arguments.PropertyName, arguments.RowNum) />
-	</cffunction>
-
-	<!--- exists column --->
-	<cffunction name="existsColumn" access="public" output="false" returntype="boolean">
-		<cfargument name="BO" type="any" required="true" />
-		<cfargument name="PropertyName" type="string" required="true" />
-		<cfargument name="RowNum" type="numeric" required="true" />
-		<cfreturn arguments.BO.getRawDataManager().existsColumn(arguments.PropertyName, arguments.RowNum) />
 	</cffunction>
 
 	<!--- add row --->

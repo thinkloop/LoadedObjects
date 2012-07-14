@@ -21,6 +21,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 
 			var ObjectPath = BO.getLoadedObjectsBOPath();
 			var PropertyName = arguments.PropertyName;
+			var Required = arguments.Required;
 			var DisplayName = BO.getLoadedObjectsMetadata(PropertyName, 'DisplayName');
 			var Type = BO.getLoadedObjectsMetadata(PropertyName, 'Type');
 
@@ -31,7 +32,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		</cfscript>
 
 		<!--- null --->
-		<cfif Required AND Value is NullValue>
+		<cfif Required AND IsSimpleValue(Value) AND Value is NullValue>
 			<cfreturn newValidationError(ObjectPath, PropertyName, 'Null', 'Please provide a #DisplayName#.') />
 		</cfif>
 

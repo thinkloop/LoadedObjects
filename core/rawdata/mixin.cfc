@@ -6,8 +6,10 @@
 			variables.LoadedObjects.RawData = StructNew();
 			variables.LoadedObjects.RawData.Manager = '';
 			variables.LoadedObjects.RawData.CurrentRow = 0;
+			variables.LoadedObjects.RawData.HasBeenSet = StructNew();
 
-			setRawData(StructNew());
+			setRawData();
+			clearHasBeenSet();
 		</cfscript>
 		<cfreturn this />
 	</cffunction>
@@ -37,7 +39,9 @@
 			<cfreturn CustomFunction(Value) />
 		</cfif>
 
-		<cfreturn Service.set(this, PropertyName, Value) />
+		<cfset Service.set(this, PropertyName, Value) />
+		
+		<cfreturn this />
 	</cffunction>
 
 	<!--- get --->
@@ -96,7 +100,7 @@
 
 		<cfreturn Service.is(this, PropertyName) />
 	</cffunction>
-		
+
 <!--- * * * * * * *--->
 <!--- * * LOOP * * --->
 <!--- * * * * * * *--->
@@ -109,30 +113,25 @@
 
 	<!--- current row --->
 	<cffunction name="getCurrentRow" access="public" output="false" returntype="numeric" hint="Returns the current row">
-		<cfargument name="Unsanitized" type="boolean" default="false" hint="If true, returns the raw unsanitized row number, which may be out of range for the underlying raw data." />
-		<cfscript>			
+		<cfargument name="Sanitized" type="boolean" default="true" hint="When true, ensures that a valid row number is returned. When false, may return a zero for a row number. Default is true. This was introduced so that loop() could work, by always incrementing by 1." />
+		<cfscript>
 			var RowNumber = variables.LoadedObjects.RawData.CurrentRow;
+			var Sanitized = arguments.Sanitized;
 			
-			if (arguments.Unsanitized) {
-				return RowNumber;
-			}
-			
-			if (RowNumber gt numRows()) {
-				return numRows();
+			if (not Sanitized AND RowNumber lte 0) {
+				return 0;
 			}
 			
 			if (RowNumber lt 1) {
 				return 1;
 			}
-			
+
 			return RowNumber;
 		</cfscript>
 	</cffunction>
 	<cffunction name="setCurrentRow" access="public" output="false" returntype="any" hint="Value should be zero (which returns 1 from the getter by default), unless we are in the middle of looping.">
 		<cfargument name="RowNumber" type="numeric" required="true" />
-		<cfscript>
-			variables.LoadedObjects.RawData.CurrentRow = arguments.RowNumber;
-		</cfscript>
+		<cfset variables.LoadedObjects.RawData.CurrentRow = arguments.RowNumber />
 		<cfreturn this />
 	</cffunction>
 
@@ -166,37 +165,34 @@
 	<cffunction name="getRawData" access="public" output="false" returntype="any">
 		<cfreturn getRawDataManager().getRawData() />
 	</cffunction>
-	
+
 	<!--- set raw data --->
 	<cffunction name="setRawData" access="public" output="false" returntype="any" hint="Set appropriate raw data manager based on provided raw type.">
-		<cfargument name="RawData" type="any" default="#StructNew()#" hint="Struct or query or array-of-structs" />
-
-		<cfscript>
-			var RawData = arguments.RawData;
-			var RawDataManager = '';
-		</cfscript>
-
-		<cfif IsQuery(RawData)>
-			<cfset RawDataManager = createObject('component', 'types.query').init(RawData) />
-		<cfelseif IsArray(RawData) AND ArrayLen(RawData) AND IsStruct(RawData[1])>
-			<cfset RawDataManager = createObject('component', 'types.arrayofstructs').init(RawData) />
-		<cfelseif IsStruct(RawData)>
-			<cfset RawDataManager = createObject('component', 'types.arrayofstructs').init([RawData]) />
-		<cfelse>
-			<cfset RawDataManager = createObject('component', 'types.arrayofstructs').init(StructNew()) />
-		</cfif>
-
-		<cfset variables.LoadedObjects.RawData.Manager = RawDataManager />
-		<cfset setCurrentRow(0) />
-
+		<cfargument name="RawData" type="any" default="" hint="Struct or query or array-of-structs" />
+		<cfset variables.LoadedObjects.RawData.Manager = getLoadedObjectsPlugin('RawData').createRawData(this, arguments.RawData) />
 		<cfreturn this />
 	</cffunction>
-	
-	<!--- get manager --->
+
+	<!--- get raw data manager --->
 	<cffunction name="getRawDataManager" access="public" output="false" returntype="any">
 		<cfreturn variables.LoadedObjects.RawData.Manager />
 	</cffunction>
+
+<!--- * * * * * * * * * * *--->
+<!--- * * HAS BEEN SET * * --->
+<!--- * * * * * * * * * * *--->
+
+	<!--- get has been set --->
+	<cffunction name="getHasBeenSet" access="public" output="false" returntype="struct">
+		<cfreturn variables.LoadedObjects.RawData.HasBeenSet />
+	</cffunction>
 	
+	<!--- clear has been set --->
+	<cffunction name="clearHasBeenSet" access="public" output="false" returntype="any">
+		<cfset variables.LoadedObjects.RawData.HasBeenSet = StructNew() />
+		<cfreturn this />
+	</cffunction>	
+
 <!--- * * * * * * * * * * * * * --->
 <!--- * * ON MISSING METHOD * * --->
 <!--- * * * * * * * * * * * * * --->
