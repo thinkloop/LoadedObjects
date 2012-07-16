@@ -24,7 +24,7 @@
 
 			ensureRowsColumnsExist(PropertyName, RowNum);
 		</cfscript>
-		
+
 		<cfset variables.RawData[RowNum][PropertyName] = Value />
 
 		<cfreturn this />
@@ -34,22 +34,58 @@
 	<cffunction name="getRaw" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="RowNum" type="numeric" required="true" />
-		
+
 		<cfscript>
 			var PropertyName = arguments.PropertyName;
 			var RowNum = arguments.RowNum;
 		</cfscript>
-		
-		<cfif RowNum gt numRows() OR not StructKeyExists(variables.RawData[RowNum], PropertyName)>
-			<cfreturn '' />
-		</cfif>
-		
+
 		<cfreturn variables.RawData[RowNum][PropertyName] />
+	</cffunction>
+
+	<!--- exists raw --->
+	<cffunction name="existsRaw" access="public" output="false" returntype="any">
+		<cfargument name="PropertyName" type="string" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
+
+		<cfscript>
+			var PropertyName = arguments.PropertyName;
+			var RowNum = arguments.RowNum;
+		</cfscript>
+
+		<cfif StructKeyExists(variables.RawData[RowNum], PropertyName)>
+			<cfreturn true />
+		</cfif>
+
+		<cfreturn false />
 	</cffunction>
 
 	<!--- num rows --->
 	<cffunction name="numRows" access="public" output="false" returntype="numeric">
 		<cfreturn ArrayLen(variables.RawData) />
+	</cffunction>
+
+	<!--- get raw with prefix --->
+	<cffunction name="getRawWithoutPrefix" access="public" output="false" returntype="struct">
+		<cfargument name="Prefix" type="string" required="true" hint="The characters a property name must begin with to be returned." />
+		<cfargument name="RowNum" type="numeric" required="true" />
+
+		<cfscript>
+			var Prefix = arguments.Prefix;
+			var RowNum = arguments.RowNum;
+			var PrefixLength = Len(Prefix);
+
+			var currentPropertyName = '';
+			var FinalProperties = StructNew();
+		</cfscript>
+
+		<cfloop collection="#variables.RawData[RowNum]#" item="currentPropertyName">
+			<cfif Len(currentPropertyName) gt PrefixLength AND Left(currentPropertyName, PrefixLength) is Prefix>
+				<cfset FinalProperties[Right(currentPropertyName, Len(currentPropertyName) - PrefixLength)] = getRaw(currentPropertyName, RowNum) />
+			</cfif>
+		</cfloop>
+
+		<cfreturn FinalProperties />
 	</cffunction>
 
 	<!--- get raw data --->
@@ -77,24 +113,24 @@
 		</cfloop>
 
 		<!--- make sure column exists --->
-		<cfif not StructKeyExists(variables.RawData[RowNum], PropertyName)>
+		<cfif not existsRaw(PropertyName, RowNum)>
 			<cfset addColumn(PropertyName, RowNum) />
 		</cfif>
 
 		<cfreturn this />
 	</cffunction>
-	
+
 	<!--- add row --->
 	<cffunction name="addRow" access="private" output="false" returntype="any">
 		<cfset ArrayAppend(variables.RawData, StructNew()) />
 		<cfreturn this />
 	</cffunction>
-	
+
 	<!--- add column --->
 	<cffunction name="addColumn" access="private" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="RowNum" type="numeric" required="true" />
 		<cfset variables.RawData[arguments.RowNum][arguments.PropertyName] = '' />
 		<cfreturn this />
-	</cffunction>	
+	</cffunction>
 </cfcomponent>

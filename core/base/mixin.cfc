@@ -46,6 +46,19 @@
 		<cfreturn variables.LoadedObjects.FW.exists(variables.LoadedObjects.BOPath, arguments.PropertyName, arguments.AttributeName) />
 	</cffunction>
 
+
+	<!--- get loaded objects child property name --->
+	<cffunction name="getLoadedObjectsChildPropertyName" access="public" output="false" returntype="string">
+		<cfargument name="ChildPropertyName" type="string" required="true" hint="The name of the child property with its parent object name prepended to it (i.e. Account.ID = AccountID)." />
+		<cfreturn variables.LoadedObjects.FW.getChildPropertyName(variables.LoadedObjects.BOPath, arguments.ChildPropertyName) />
+	</cffunction>
+
+	<!--- exists loaded objects child property --->
+	<cffunction name="existsLoadedObjectsChildProperty" access="public" output="false" returntype="boolean">
+		<cfargument name="ChildPropertyName" type="string" required="true" hint="The name of the child property with its parent object name prepended to it (i.e. Account.ID = AccountID)." />
+		<cfreturn variables.LoadedObjects.FW.existsChildProperty(variables.LoadedObjects.BOPath, arguments.ChildPropertyName) />
+	</cffunction>
+
 	<!--- list loaded objects property name --->
 	<cffunction name="listLoadedObjectsPropertyNames" access="public" output="false" returntype="string">
 		<cfargument name="FilterByAttributes" type="struct" default="#StructNew()#" hint="A struct of attribute names and values to filter the properties by. A * acts as a wildcard in the string.">

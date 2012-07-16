@@ -1,5 +1,5 @@
 <cfcomponent dbname="Comment" displayname="Comment" output="false">
-	<cfproperty name="CommentID" dbname="Comment.CommentID" displayname="Comment ID" />
+	<cfproperty name="ID" dbname="Comment.CommentID" displayname="Comment ID" />
 	<cfproperty name="PostID" dbname="Comment.PostID" />
 	<cfproperty name="DateCreated" dbname="Comment.DateCreated" displayname="Date Created" minvalue="12/30/2007" />
 	<cfproperty name="Comment" dbname="Comment.Comment" displayname="Comment" />

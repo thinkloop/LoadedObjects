@@ -31,7 +31,7 @@
 
 			// add collection plugin manually
 			addPlugin('core.collection');
-			
+
 			// add source data plugin manually
 			addPlugin('core.rawdata');
 		</cfscript>
@@ -46,26 +46,26 @@
 
 	<!--- new --->
 	<cffunction name="new" access="public" output="false" returntype="any" hint="Create and return new loaded object.">
-		<cfargument name="ObjectPath" type="string" required="true" hint="Dot-path to object excluding the ObjectPathPrefix, unless IgnoreObjectPathPrefix is true." />
+		<cfargument name="ObjectName" type="string" required="true" hint="The name of the business object (aka. the object-path minus any defined path-prefix)." />
 
 		<cfscript>
 			var BO = '';
 			var MetaData = '';
 			var currentPlugin = '';
-			var ObjectPath = arguments.ObjectPath;
+			var ObjectName = arguments.ObjectName;
 		</cfscript>
 
 		<!--- create object instance --->
-		<cfset BO = CreateObject('component', variables.ObjectPathPrefix & ObjectPath) />
+		<cfset BO = CreateObject('component', variables.ObjectPathPrefix & ObjectName) />
 
-		<cfif not exists(ObjectPath)>
-			<cfset addLoadedObject(BO) />
+		<cfif not exists(ObjectName)>
+			<cfset addLoadedObjectMetadata(BO) />
 		</cfif>
 
 		<!--- mixin plugins --->
 		<cfscript>
 			StructInsert(BO, 'mixinPlugin_LoadedObjects_278956238479', variables.mixin, true);
-			BO.mixinPlugin_LoadedObjects_278956238479(this, ObjectPath, variables.Plugins);
+			BO.mixinPlugin_LoadedObjects_278956238479(this, ObjectName, variables.Plugins);
 			StructDelete(BO, 'mixinPlugin_LoadedObjects_278956238479');
 		</cfscript>
 
@@ -75,35 +75,35 @@
 
 	<!--- get loaded object metadata --->
 	<cffunction name="get" access="public" output="false" returntype="any" hint="Get an element from the metadata tree.">
-		<cfargument name="ObjectPath" type="string" default="" hint="If no object name is provided, returns metadata for all objects." />
+		<cfargument name="ObjectName" type="string" default="" hint="The name of the business object (aka. the object-path minus any defined path-prefix). If no object name is provided, returns metadata for all objects." />
 		<cfargument name="PropertyName" type="string" default="" hint="If no property name is provided, returns metadata for all properties of specified object." />
 		<cfargument name="AttributeName" type="string" default="" hint="If no attribute name is provided, returns metadata for all attributes of specified property." />
 
 		<cfscript>
 			var LoadedObjectsMetadata = variables.LoadedObjectsMetadata.ByPath;
-			var ObjectPath = arguments.ObjectPath;
-			var ObjectPathPlusPrefix = variables.ObjectPathPrefix & ObjectPath;
+			var ObjectName = arguments.ObjectName;
+			var ObjectPath = variables.ObjectPathPrefix & ObjectName;
 			var PropertyName = arguments.PropertyName;
 			var AttributeName = arguments.AttributeName;
 			var ObjectType = '';
 		</cfscript>
 
-		<cfif Len(ObjectPath)>
+		<cfif Len(ObjectName)>
 			<cfif Len(PropertyName)>
 				<cfif Len(AttributeName)>
 
 					<!--- if this is not the special 'default' attribute, return its value --->
 					<cfif AttributeName neq 'Default'>
-						<cfreturn LoadedObjectsMetadata[ObjectPathPlusPrefix]['Properties'][PropertyName][AttributeName] />
+						<cfreturn LoadedObjectsMetadata[ObjectPath]['Properties'][PropertyName][AttributeName] />
 					</cfif>
 
 					<!--- if default value exists, return it --->
-					<cfif StructKeyExists(LoadedObjectsMetadata[ObjectPathPlusPrefix]['Properties'][PropertyName], 'Default')>
-						<cfreturn LoadedObjectsMetadata[ObjectPathPlusPrefix]['Properties'][PropertyName]['Default'] />
+					<cfif StructKeyExists(LoadedObjectsMetadata[ObjectPath]['Properties'][PropertyName], 'Default')>
+						<cfreturn LoadedObjectsMetadata[ObjectPath]['Properties'][PropertyName]['Default'] />
 					</cfif>
 
 					<!--- figure out default from type --->
-					<cfset ObjectType = get(ObjectPath, PropertyName, 'Type') />
+					<cfset ObjectType = get(ObjectName, PropertyName, 'Type') />
 					<cfswitch expression="#ObjectType#">
 						<cfcase value="string,any,binary,variableName">
 							<cfreturn '' />
@@ -136,45 +136,43 @@
 						</cfdefaultcase>
 					</cfswitch>
 				</cfif>
-				<cfreturn LoadedObjectsMetadata[ObjectPathPlusPrefix]['Properties'][PropertyName] />
+				<cfreturn LoadedObjectsMetadata[ObjectPath]['Properties'][PropertyName] />
 			</cfif>
-			<cfreturn LoadedObjectsMetadata[ObjectPathPlusPrefix] />
+			<cfreturn LoadedObjectsMetadata[ObjectPath] />
 		</cfif>
 
 		<cfreturn LoadedObjectsMetadata />
 	</cffunction>
-	
+
 	<!--- set loaded object metadata --->
 	<cffunction name="set" access="public" output="false" returntype="any" hint="Set an element of the metadata tree.">
-		<cfargument name="ObjectPath" type="string" required="true" />
+		<cfargument name="ObjectName" type="string" required="true" hint="The name of the business object (aka. the object-path minus any defined path-prefix)." />
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="AttributeName" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
-<cfdump var="#arguments#">
-
 
 		<cfscript>
 			var LoadedObjectsMetadata = variables.LoadedObjectsMetadata.ByPath;
-			var ObjectPath = arguments.ObjectPath;
-			var ObjectPathPlusPrefix = variables.ObjectPathPrefix & ObjectPath;
+			var ObjectName = arguments.ObjectName;
+			var ObjectPath = variables.ObjectPathPrefix & ObjectName;
 			var PropertyName = arguments.PropertyName;
 			var AttributeName = arguments.AttributeName;
 			var Value = arguments.Value;
-			
-			LoadedObjectsMetadata[ObjectPathPlusPrefix]['Properties'][PropertyName][AttributeName] = Value;
+
+			LoadedObjectsMetadata[ObjectPath]['Properties'][PropertyName][AttributeName] = Value;
 		</cfscript>
-		
+
 		<cfreturn this />
 	</cffunction>
-		
+
 	<!--- exists loaded object metadata --->
 	<cffunction name="exists" access="public" output="false" returntype="boolean">
-		<cfargument name="ObjectPath" type="string" default="" hint="If no object name is provided, returns metadata for all objects." />
+		<cfargument name="ObjectName" type="string" default="" hint="The name of the business object (aka. the object-path minus any defined path-prefix). If none is provided, returns metadata for all objects." />
 		<cfargument name="PropertyName" type="string" default="" hint="If no property name is provided, returns metadata for all properties of specified object." />
 		<cfargument name="AttributeName" type="string" default="" hint="If no attribute name is provided, returns metadata for all attributes of specified property." />
 
 		<cfset var collection = variables.LoadedObjectsMetadata.ByPath />
-		<cfset var ObjectPath = variables.ObjectPathPrefix & arguments.ObjectPath />
+		<cfset var ObjectPath = variables.ObjectPathPrefix & arguments.ObjectName />
 
 		<!--- object path --->
 		<cfif not StructKeyExists(collection, ObjectPath)>
@@ -200,6 +198,34 @@
 		<cfelse>
 			<cfreturn false />
 		</cfif>
+	</cffunction>
+
+	<!--- get child property name --->
+	<cffunction name="getChildPropertyName" access="public" output="false" returntype="string">
+		<cfargument name="ObjectName" type="string" required="true" hint="The name of the parent object that has a property that is a child object with its own properties." />
+		<cfargument name="ChildPropertyName" type="string" required="true" hint="The name of the child property with its parent object name prepended to it (i.e. Account.ID = AccountID)." />
+
+		<cfscript>
+			var ObjectPath = variables.ObjectPathPrefix & arguments.ObjectName;
+			var ChildPropertyName = arguments.ChildPropertyName;
+			var ChildPropertyNames = variables.LoadedObjectsMetadata.ByPath[ObjectPath].ChildPropertyNames;
+		</cfscript>
+
+		<cfreturn ChildPropertyNames[ChildPropertyName] />
+	</cffunction>
+
+	<!--- exists child property --->
+	<cffunction name="existsChildProperty" access="public" output="false" returntype="boolean">
+		<cfargument name="ObjectName" type="string" default="" hint="The name of the parent object that has a property that is a child object with its own properties." />
+		<cfargument name="ChildPropertyName" type="string" required="true" hint="The name of the child property with its parent object name prepended to it (i.e. Account.ID = AccountID)." />
+
+		<cfscript>
+			var ObjectPath = variables.ObjectPathPrefix & arguments.ObjectName;
+			var ChildPropertyName = arguments.ChildPropertyName;
+			var ChildPropertyNames = variables.LoadedObjectsMetadata.ByPath[ObjectPath].ChildPropertyNames;
+		</cfscript>
+
+		<cfreturn StructKeyExists(ChildPropertyNames, ChildPropertyName) />
 	</cffunction>
 
 	<!--- add plugin --->
@@ -232,8 +258,8 @@
 <!--- * * * * * * * * --->
 
 	<!--- add loaded object --->
-	<cffunction name="addLoadedObject" access="private" output="false" returntype="any" hint="Use new() to add an object instead of this function.">
-		<cfargument name="BO" type="any" required="true" hint="The business object to parse/add." />
+	<cffunction name="addLoadedObjectMetadata" access="private" output="false" returntype="any" hint="Use new() to add an object instead of this function.">
+		<cfargument name="BO" type="any" required="true" hint="The business object to parse and add." />
 
 		<cfscript>
 			var BO = arguments.BO;
@@ -241,27 +267,32 @@
 
 			var currentPropertyIndex = '';
 			var currentProperty = '';
-			var currentAttributeName='';
+			var currentAttributeName = '';
 
-			var LoadedObjectsMetaData = StructNew();
-			var LoadedObjectsProperties = StructNew();
+			var currentChildPropertyIndex = '';
+			var currentChildProperty = '';
 
-			LoadedObjectsMetaData.Name = ListLast(BOMetadata.Name, '.');
-			LoadedObjectsMetaData.Path = BOMetadata.Name; // (i.e. objects.account)
-			LoadedObjectsMetaData.FilePath = BOMetadata.Path; // (i.e. d:\web\objects\account.cfc)
-			LoadedObjectsMetaData.Position = StructCount(variables.LoadedObjectsMetadata.ByPath) + 1;
-			
-			if (StructKeyExists(BOMetadata, 'DisplayName')) {			
-				LoadedObjectsMetaData.DisplayName = BOMetadata.DisplayName;
+			var ObjectMetadata = StructNew();
+			var Properties = StructNew();
+			var ChildPropertyNames = StructNew();
+			var ChildObjectMetadata = '';
+
+			ObjectMetadata.Name = ListLast(BOMetadata.Name, '.');
+			ObjectMetadata.Path = BOMetadata.Name; // (i.e. objects.account)
+			ObjectMetadata.FilePath = BOMetadata.Path; // (i.e. d:\web\objects\account.cfc)
+			ObjectMetadata.Position = StructCount(variables.LoadedObjectsMetadata.ByPath) + 1;
+
+			if (StructKeyExists(BOMetadata, 'DisplayName')) {
+				ObjectMetadata.DisplayName = BOMetadata.DisplayName;
 			}
 			else {
-				LoadedObjectsMetaData.DisplayName = LoadedObjectsMetaData.Name;				
+				ObjectMetadata.DisplayName = ObjectMetadata.Name;
 			}
 
 			// display name
-			LoadedObjectsMetaData.DisplayName = LoadedObjectsMetaData.Name;
+			ObjectMetadata.DisplayName = ObjectMetadata.Name;
 			if (StructKeyExists(BOMetadata, 'DisplayName')) {
-				LoadedObjectsMetaData.DisplayName = BOMetadata.DisplayName;
+				ObjectMetadata.DisplayName = BOMetadata.DisplayName;
 			}
 		</cfscript>
 
@@ -272,43 +303,58 @@
 					currentProperty = BOMetadata.Properties[currentPropertyIndex];
 
 					// add default attributes to metadata
-					LoadedObjectsProperties[currentProperty.Name] = StructNew();
-					LoadedObjectsProperties[currentProperty.Name]['Name'] = currentProperty.Name;
-					LoadedObjectsProperties[currentProperty.Name]['DisplayName'] = currentProperty.Name;
-					LoadedObjectsProperties[currentProperty.Name]['Type'] = 'string';
-					// LoadedObjectsProperties[currentProperty.Name]['Default'] = ''; // 'default' is a basic attribute but we leave it blank to see later whether the user has set it
-					LoadedObjectsProperties[currentProperty.Name]['NullValue'] = '';
-					LoadedObjectsProperties[currentProperty.Name]['Position'] = currentPropertyIndex;
-					//LoadedObjectsProperties[currentProperty.Name]['ReadOnly'] = False;
-					LoadedObjectsProperties[currentProperty.Name]['IsObject'] = False;
+					Properties[currentProperty.Name] = StructNew();
+					Properties[currentProperty.Name]['Name'] = currentProperty.Name;
+					Properties[currentProperty.Name]['DisplayName'] = currentProperty.Name;
+					Properties[currentProperty.Name]['Type'] = 'string';
+					// Properties[currentProperty.Name]['Default'] = ''; // 'default' is a basic attribute but we leave it blank to see later whether the user has set it
+					Properties[currentProperty.Name]['NullValue'] = '';
+					Properties[currentProperty.Name]['Position'] = currentPropertyIndex;
+					//Properties[currentProperty.Name]['ReadOnly'] = False;
+					Properties[currentProperty.Name]['IsObject'] = False;
 				</cfscript>
 
 				<!--- loop through and add real attributes, possibly overriding defaults set above --->
 				<cfloop collection="#currentProperty#" item="currentAttributeName">
-					<cfset LoadedObjectsProperties[currentProperty.Name][currentAttributeName] = currentProperty[currentAttributeName] />
+					<cfset Properties[currentProperty.Name][currentAttributeName] = currentProperty[currentAttributeName] />
 				</cfloop>
 
 				<!--- check if this property points to another object --->
-				<cfswitch expression="#LoadedObjectsProperties[currentProperty.Name]['Type']#">
+				<cfswitch expression="#Properties[currentProperty.Name]['Type']#">
+					<cfcase value="">
+						<cfset Properties[currentProperty.Name]['Type'] = "String" />
+					</cfcase>
 					<cfcase value="string,any,binary,variableName,uuid,guid"></cfcase>
 					<cfcase value="numeric,boolean,date"></cfcase>
 					<cfcase value="struct,array,query"></cfcase>
 					<cfdefaultcase>
-						<cfset LoadedObjectsProperties[currentProperty.Name]['IsObject'] = true />
+						<cfset Properties[currentProperty.Name]['IsObject'] = true />
+
+						<!--- get child object metadata (also creates it if it does not exist) --->
+						<cfset ChildObjectMetadata = getMetadata(CreateObject('component', variables.ObjectPathPrefix & Properties[currentProperty.Name]['Type'])) />
+
+						<!--- set child properties by prepending the child object name to each property name (i.e. Account.ID >> AccountID) --->
+						<cfloop from="1" to="#ArrayLen(ChildObjectMetadata.Properties)#" index="currentChildPropertyIndex">
+							<cfscript>
+								currentChildProperty = ChildObjectMetadata.Properties[currentChildPropertyIndex];
+								ChildPropertyNames[currentProperty.Name & currentChildProperty.Name] = currentChildProperty.Name;
+							</cfscript>
+						</cfloop>
 					</cfdefaultcase>
-				</cfswitch>				
+				</cfswitch>
 			</cfloop>
 		</cfif>
 
 		<!--- add to metadata collections --->
 		<cfscript>
-			LoadedObjectsMetaData.Properties = LoadedObjectsProperties;
-			variables.LoadedObjectsMetadata.ByPath[LoadedObjectsMetaData.Path] = LoadedObjectsMetaData;
+			ObjectMetadata.Properties = Properties;
+			ObjectMetadata.ChildPropertyNames = ChildPropertyNames;
+			variables.LoadedObjectsMetadata.ByPath[ObjectMetadata.Path] = ObjectMetadata;
 		</cfscript>
 
-		<cfreturn LoadedObjectsMetaData />
+		<cfreturn ObjectMetadata />
 	</cffunction>
-	
+
 <!--- * * * * * * * --->
 <!--- * * MIXIN * * --->
 <!--- * * * * * * * --->
@@ -381,19 +427,4 @@
 			</cfscript>
 		</cfloop>
 	</cffunction>
-
-	<!--- inject (NOT VERY USEFUL BECAUSE MIXIN() ITSELF NEEDS TO USE IT, WHICH MEANS THIS HAS TO BE MIXED IN ITSELF ANYWAY)
-	<cffunction name="inject" access="public" returntype="void" hint="Temporarily injects and runs a mixin into an object">
-		<cfargument name="LoadedObject" type="any" required="true" hint="Instance of the object into which the MixinFunction will be injected." />
-		<cfargument name="MixinFunction" type="any" required="true" hint="Instance of the function that will be injected into LoadedObject." />
-		<cfargument name="Overwrite" type="boolean" default="true" />
-		<cfargument name="Args" type="struct" default="" hint="Optional argument collection to pass into MixinFunction." />
-
-		<cfscript>
-			StructInsert(LoadedObject, 'mixinFunction_LoadedObjects_278956238479_VFSDGGHJLSDVASD', arguments.MixinFunction, arguments.Overwrite);
-			LoadedObject.mixinFunction_LoadedObjects_278956238479_VFSDGGHJLSDVASD(argumentCollection = arguments.Args);
-			StructDelete(LoadedObject, 'mixinFunction_LoadedObjects_278956238479_VFSDGGHJLSDVASD');
-		</cfscript>
-	</cffunction>
-	--->
 </cfcomponent>

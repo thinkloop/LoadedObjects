@@ -4,58 +4,42 @@
 
 	Post=LoadedObjects.new('post');
 	Post2=LoadedObjects.new('post');
-	
-	Post.getViews().hello = 'yes!';	
-	dump(Post.raw());
-	dump(Post.getDateCreated());
-	dump(Post.raw());
+</cfscript>
+
+<!--- test setting/getting nested properties --->
+<cfscript>
+	Post.setCommentID(1);
+	dump(Post.getComment().getID());
 	dump(Post.getAll());
-	dump(Post.raw());
 abort;
 
-/*
-	Post=LoadedObjects.new('Post');
-	Post.getLooper().setKeywords('hip hop');
-	Post.getLooper().setStartRow(100);
-	Post.getLooper().setMaxRows(100);
-	Post.search();
-*/
 </cfscript>
-<!---
-<cfdump var="#Post.getMemento()#">
-<cfdump var="+++++++++++++">
-<cfoutput>#Post.dump(Abort=False)#</cfoutput>
-<cfdump var="-------------">
-<cfdump var="#LoadedObjects.dumpMetaData()#" expand="false">
---->
-<!--- looper functionality --->
+
+<!--- set rawdata
 <cfscript>
-	Post.setID(1);
-	Post.setDateCreated(now());
-	Post.setTitle('Title ##1');
-	Post.setBody('Body ##1');
-	
+	ArrayData = [
+		{ ID : 1, DateCreated : '01/01/2000', Title : 'Title ##1', Body : 'What a body1!' },
+		{ ID : 2, DateCreated : '01/01/2010', Title : 'Title ##2', Body : 'What a body2!' },
+		{ ID : 30, DateCreated : '01/01/2012', Title : 'Title ##39', Body : 'What a body39!' }
+	];
+
+	QueryData = QueryNew('ID,DateCreated,Title,Body');
+	QueryAddRow(QueryData, 3);
+	QuerySetCell(QueryData, 'ID', 1, 1);
+	QuerySetCell(QueryData, 'ID', 2, 2);
+	QuerySetCell(QueryData, 'ID', 30, 3);
+
 	/*
 	Post.getSourceData().addRow();
 	*/
-	Post.setID(2);
-	Post.setDateCreated(now());
-	Post.setTitle('Title ##2');
-	Post.setBody('Body ##2');	
-
-/*
-	tmpQuery=QueryNew('Comment,Name');
-	QueryAddRow(tmpQuery);
-	QuerySetCell(tmpQuery, 'Comment', 'Comment ##1');
-	QuerySetCell(tmpQuery, 'Name', 'Name ##1');
-	QuerySetCell(tmpQuery, 'Comment', 'Comment ##2');
-	QuerySetCell(tmpQuery, 'Name', 'Name ##2');
-	QuerySetCell(tmpQuery, 'Comment', 'Comment ##3');
-	QuerySetCell(tmpQuery, 'Name', 'Name ##3');
-*/
-	//Post.setComments(LoadedObjects.new('Comment').setRawData([{Comment='Comment ##1', Name='Name ##1'}, {Comment='Comment ##2', Name='Name ##2'}, {Comment='Comment ##3', Name='Name ##3'}]));
+	Post.setAll(ArrayData);
+dump(Post.getRawData());
+	Post.setAll(QueryData);
+dump(Post.getRawData());
+abort;
 </cfscript>
-<cfdump var="#Post.getLoadedObjectsMetadata()#">
+--->
+
 <cfoutput>
 	<div id="Post">
 		#Post.getTitle()#
@@ -67,32 +51,12 @@ abort;
 	</div>
 	<hr />
 	<div id="Comments">
-		<!---
 		<cfloop condition="#Post.loop()#">
 			<cfset newQuery = QueryNew('CommentID,Comment') />
 			<cfset Post.getComments().setRawData(newQuery) />
-			<!---
 			<p>
 				#Post.getComments().getComment()# <strong>by #Post.getComments().getName()#</strong>
 			</p>
-			--->
 		</cfloop>
---->
 	</div>
-	<!---
-	<cfdump var="#Post.getSourceData().raw()#">
-	<cfdump var="#Post.getComments2()#">
-	<cfdump var="#Post.getSourceData().raw()#">
-	--->
 </cfoutput>
-
-<cffunction name="dump" output="true">
-	<cfargument name="Variable" type="any" required="true" />
-	<cfargument name="Label" type="string" default="" />
-	<cfargument name="Abort" type="boolean" default="true" />
-
-	<cfdump var="#arguments.Variable#" label="#arguments.Label#" expand="false" /><hr />
-	<cfif arguments.Abort>
-		<cfabort />
-	</cfif>
-</cffunction>

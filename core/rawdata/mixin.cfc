@@ -157,8 +157,8 @@
 	<!--- set all --->
 	<cffunction name="setAll" access="public" output="false" returntype="any">
 		<cfargument name="RawData" type="any" required="true" hint="Can be a struct or a query or an array of structs" />
-		<cfargument name="Row" type="numeric" default="1" hint="Specifies which row of the query or array of structs to use to populate the object" />
-		<cfreturn getLoadedObjectsPlugin('RawData').setAll(this, arguments.RawData, arguments.Row) />
+		<cfargument name="SkipSets" type="boolean" default="false" hint="If true, directly sets the raw data without running any setters or looping." />
+		<cfreturn getLoadedObjectsPlugin('RawData').setAll(this, arguments.RawData, arguments.SkipSets) />
 	</cffunction>
 
 	<!--- get raw data --->
