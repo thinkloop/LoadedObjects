@@ -8,9 +8,10 @@
 
 <!--- test setting/getting nested properties --->
 <cfscript>
-	Post.setCommentID(1);
+	dump('Set child property Comment.ID to 15, through parent object.');
+
+	Post.setCommentID(15);
 	dump(Post.getComment().getID());
-	dump(Post.getAll());
 abort;
 
 </cfscript>

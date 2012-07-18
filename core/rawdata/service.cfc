@@ -17,6 +17,7 @@
 			var Value = arguments.Value;
 			var HasBeenSet = BO.getHasBeenSet();
 
+			var CurrentRow = Max(1, BO.getCurrentRow());
 			var ChildObject = '';
 			var ChildObjectName = '';
 			var ChildPropertyName = '';
@@ -24,28 +25,14 @@
 
 		<!--- if property does not exist, check if child object property exists --->
 		<cfif not BO.existsLoadedObjectsMetadata(PropertyName)>
-			<cfif BO.existsLoadedObjectsChildProperty(PropertyName)>
-				<cfscript>
-					ChildPropertyName = BO.getLoadedObjectsChildPropertyName(PropertyName);
-					ChildObjectName = Left(PropertyName, Len(PropertyName) - Len(ChildPropertyName));
-					ChildObject = get(BO, ChildObjectName);
-				</cfscript>
-				<cfreturn set(ChildObject, ChildPropertyName, Value) />
-			</cfif>
-
 			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Set.UndefinedProperty" message="Could not set property '#UCase(PropertyName)#' in component '#UCase(BO.getLoadedObjectsBOPath())#'." detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 
 		<!--- set the value --->
-		<cfset setRaw(BO, PropertyName, Value, BO.getCurrentRow()) />
-
-		<!--- if this is a child object and it has never been set, see if there is rawdata available to populate it, in the format ObjectProperty (i.e. Acount.ID >> AcountID) --->
-		<cfif BO.getLoadedObjectsMetadata(PropertyName, 'IsObject') AND not hasBeenSetProperty(BO, PropertyName, BO.getCurrentRow())>
-			<cfset Value.setRawData(getRawWithoutPrefix(BO, PropertyName, BO.getCurrentRow())) />
-		</cfif>
+		<cfset setRaw(BO, PropertyName, Value, CurrentRow) />
 
 		<!--- mark has been set --->
-		<cfset HasBeenSet[BO.getCurrentRow()][PropertyName] = true />
+		<cfset HasBeenSet[CurrentRow][PropertyName] = true />
 
 		<cfreturn BO />
 	</cffunction>
@@ -60,48 +47,37 @@
 			var PropertyName = arguments.PropertyName;
 			var HasBeenSet = BO.getHasBeenSet();
 			var RawValue = '';
+			var CurrentRow = Max(1, BO.getCurrentRow());
 
 			var ChildObject = '';
 			var ChildObjectName = '';
 			var ChildPropertyName = '';
 		</cfscript>
 
-		<!--- prop not exists --->
-		<!--- check if objects match as prefixes --->
-		<!--- check if object has property --->
-		<!--- if yes, check if it has ever been set ---><!--- if no, recurse the function so that further child objects could be verified --->
-		<!--- if no, check raw data value ---><!--- if yes, get it from sub-object --->
-
 		<!--- if property does not exist, check if it is trying to call a property on a child object --->
 		<cfif not BO.existsLoadedObjectsMetadata(PropertyName)>
-			<cfif BO.existsLoadedObjectsChildProperty(PropertyName)>
-				<cfscript>
-					ChildPropertyName = BO.getLoadedObjectsChildPropertyName(PropertyName);
-					ChildObjectName = Left(PropertyName, Len(PropertyName) - Len(ChildPropertyName));
-					ChildObject = BO.getLoadedObjectsMetadata(ChildObjectName, 'Default');
-
-					set(BO, ChildObjectName, ChildObject);
-				</cfscript>
-				<cfreturn get(ChildObject, ChildPropertyName) />
-			</cfif>
-
 			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Get.UndefinedProperty" message="Could not get property '#UCase(PropertyName)#' from component '#UCase(BO.getLoadedObjectsBOPath())#'." detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
 
 		<!--- if property has never run through the set routine, set it now to itself so that the raw value is processed --->
-		<cfif not hasBeenSetProperty(BO, PropertyName, BO.getCurrentRow())>
-			<cfif existsRaw(BO, PropertyName, BO.getCurrentRow())>
-				<cfset RawValue = getRaw(BO, PropertyName, BO.getCurrentRow()) />
+		<cfif not hasBeenSetProperty(BO, PropertyName, CurrentRow)>
+			<cfif existsRaw(BO, PropertyName, CurrentRow)>
+				<cfset RawValue = getRaw(BO, PropertyName, CurrentRow) />
 			<cfelse>
 				<cfset RawValue = BO.getLoadedObjectsMetadata(PropertyName, 'Default') />
 			</cfif>
 
+			<!--- if property is child object, see if raw data from parent could be used to populate it --->
+			<cfif BO.getLoadedObjectsMetadata(PropertyName, 'IsObject')>
+				<cfset RawValue.setRawData(getRawWithoutPrefix(BO, PropertyName, CurrentRow)) />
+			</cfif>
+
 			<!--- set the value manually here rather than using set() to avoid recursive stack overflow when overriding setters and need to call their getters to check the value --->
-			<cfset setRaw(BO, PropertyName, RawValue, BO.getCurrentRow()) />
-			<cfset HasBeenSet[BO.getCurrentRow()][PropertyName] = true />
+			<cfset setRaw(BO, PropertyName, RawValue, CurrentRow) />
+			<cfset HasBeenSet[CurrentRow][PropertyName] = true />
 		</cfif>
 
-		<cfreturn getRaw(BO, PropertyName, BO.getCurrentRow()) />
+		<cfreturn getRaw(BO, PropertyName, CurrentRow) />
 	</cffunction>
 
 	<!--- is --->
@@ -129,9 +105,13 @@
 		<cfscript>
 			var BO = arguments.BO;
 			var Direction = arguments.Direction;
-			var CurrentRow = BO.getCurrentRow(false);
-			var TotalNumRows = BO.numRows();
+			var CurrentRow = BO.getCurrentRow();
+			var TotalNumRows = BO.getTotalRows();
 		</cfscript>
+
+		<cfif TotalNumRows lte 0>
+			<cfreturn False />
+		</cfif>
 
 		<!--- reverse --->
 		<cfif Direction is 'Reverse'>
@@ -197,19 +177,11 @@
 	<cffunction name="setAll" access="public" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="RawData" type="any" required="true" hint="Can be a struct or a query or an array of structs" />
-		<cfargument name="SkipSets" type="boolean" default="false" hint="If true, directly sets the raw data without running any setters or looping." />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var RawData = arguments.RawData;
-			var SkipSets = arguments.SkipSets;
 		</cfscript>
-
-		<!--- skip sets --->
-		<cfif SkipSets>
-			<cfset BO.setRawData(RawData) />
-			<cfreturn BO />
-		</cfif>
 
 		<!--- if is struct --->
 		<cfif isStruct(RawData)>
@@ -303,28 +275,50 @@
 		<cfreturn BO />
 	</cffunction>
 
-	<!--- create raw data --->
-	<cffunction name="createRawData" access="public" output="false" returntype="any" hint="Set appropriate raw data manager based on provided raw type.">
+	<!--- set raw data --->
+	<cffunction name="setRawData" access="public" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
-		<cfargument name="RawData" type="any" default="#StructNew()#" hint="Struct or query or array-of-structs" />
+		<cfargument name="RawData" type="any" default="" hint="Can be a struct, or a query, or an array of structs - defaults to an empty struct." />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var RawData = arguments.RawData;
+			var DataManager = BO.getRawDataManager();
 
 			BO.setCurrentRow(0);
 			BO.clearHasBeenSet();
 		</cfscript>
 
 		<cfif IsQuery(RawData)>
-			<cfreturn createObject('component', 'types.query').init(RawData) />
+			<cfif IsObject(DataManager) AND IsQuery(DataManager.getRawData())>
+				<cfset DataManager.init(RawData) />
+			<cfelse>
+				<cfset DataManager = createObject('component', 'types.query').init(RawData) />
+			</cfif>
 		<cfelseif IsArray(RawData) AND ArrayLen(RawData) AND IsStruct(RawData[1])>
-			<cfreturn createObject('component', 'types.arrayofstructs').init(RawData) />
+			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>
+				<cfset DataManager.init(RawData) />
+			<cfelse>
+				<cfset DataManager = createObject('component', 'types.arrayofstructs').init(RawData) />
+			</cfif>
 		<cfelseif IsStruct(RawData)>
-			<cfreturn createObject('component', 'types.arrayofstructs').init([RawData]) />
+			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>
+				<cfset DataManager.init([RawData]) />
+			<cfelse>
+				<cfset DataManager = createObject('component', 'types.arrayofstructs').init([RawData]) />
+			</cfif>
 		<cfelse>
-			<cfreturn createObject('component', 'types.arrayofstructs').init([StructNew()]) />
+			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>
+				<cfset DataManager.init([StructNew()]) />
+			<cfelse>
+				<cfset DataManager = createObject('component', 'types.arrayofstructs').init([StructNew()]) />
+			</cfif>
 		</cfif>
+
+		<cfset BO.setTotalRows(DataManager.numRows()) />
+		<cfset BO.setRawDataManager(DataManager) />
+
+		<cfreturn BO />
 	</cffunction>
 
 <!--- * * * * * * * --->

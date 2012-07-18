@@ -6,6 +6,7 @@
 			variables.LoadedObjects.RawData = StructNew();
 			variables.LoadedObjects.RawData.Manager = '';
 			variables.LoadedObjects.RawData.CurrentRow = 0;
+			variables.LoadedObjects.RawData.TotalRows = 0;
 			variables.LoadedObjects.RawData.HasBeenSet = StructNew();
 
 			setRawData();
@@ -40,7 +41,7 @@
 		</cfif>
 
 		<cfset Service.set(this, PropertyName, Value) />
-		
+
 		<cfreturn this />
 	</cffunction>
 
@@ -101,6 +102,17 @@
 		<cfreturn Service.is(this, PropertyName) />
 	</cffunction>
 
+	<!--- get all --->
+	<cffunction name="getAll" access="public" output="false" returntype="struct">
+		<cfreturn getLoadedObjectsPlugin('RawData').getAll(this) />
+	</cffunction>
+
+	<!--- set all --->
+	<cffunction name="setAll" access="public" output="false" returntype="any">
+		<cfargument name="RawData" type="any" default="" hint="Can be a struct, or a query, or an array of structs - defaults to an empty struct." />
+		<cfreturn getLoadedObjectsPlugin('RawData').setAll(this, arguments.RawData) />
+	</cffunction>
+
 <!--- * * * * * * *--->
 <!--- * * LOOP * * --->
 <!--- * * * * * * *--->
@@ -113,17 +125,16 @@
 
 	<!--- current row --->
 	<cffunction name="getCurrentRow" access="public" output="false" returntype="numeric" hint="Returns the current row">
-		<cfargument name="Sanitized" type="boolean" default="true" hint="When true, ensures that a valid row number is returned. When false, may return a zero for a row number. Default is true. This was introduced so that loop() could work, by always incrementing by 1." />
 		<cfscript>
 			var RowNumber = variables.LoadedObjects.RawData.CurrentRow;
-			var Sanitized = arguments.Sanitized;
-			
-			if (not Sanitized AND RowNumber lte 0) {
+			var TotalRows = getTotalRows();
+
+			if (RowNumber lte 0) {
 				return 0;
 			}
-			
-			if (RowNumber lt 1) {
-				return 1;
+
+			if (RowNumber gt TotalRows) {
+				return TotalRows;
 			}
 
 			return RowNumber;
@@ -132,34 +143,34 @@
 	<cffunction name="setCurrentRow" access="public" output="false" returntype="any" hint="Value should be zero (which returns 1 from the getter by default), unless we are in the middle of looping.">
 		<cfargument name="RowNumber" type="numeric" required="true" />
 		<cfset variables.LoadedObjects.RawData.CurrentRow = arguments.RowNumber />
+
+		<cfif arguments.RowNumber gt getTotalRows()>
+			<cfset setTotalRows(arguments.RowNumber) />
+		</cfif>
 		<cfreturn this />
 	</cffunction>
 
-	<!--- num rows --->
-	<cffunction name="numRows" access="public" output="false" returntype="numeric">
-		<cfreturn getRawDataManager().numRows() />
-	</cffunction>
+	<!--- total rows --->
+	<cffunction name="getTotalRows" access="public" output="false" returntype="numeric" hint="The total number of rows in the recordset.">
+		<cfscript>
+			var TotalRows = variables.LoadedObjects.RawData.TotalRows;
+		</cfscript>
 
-	<!--- has rows --->
-	<cffunction name="hasRows" access="public" output="false" returntype="boolean">
-		<cfreturn getRawDataManager().numRows() gt 0 />
+		<cfif TotalRows lt 0>
+			<cfreturn 0 />
+		</cfif>
+
+		<cfreturn TotalRows />
+	</cffunction>
+	<cffunction name="setTotalRows" access="public" output="false" returntype="any" hint="The total number of rows in the recordset.">
+		<cfargument name="TotalNumRows" type="numeric" required="true" />
+		<cfset variables.LoadedObjects.RawData.TotalRows = arguments.TotalNumRows />
+		<cfreturn this />
 	</cffunction>
 
 <!--- * * * * * * * * * *--->
-<!--- * * RawData * * --->
+<!--- * * RawData * * * *--->
 <!--- * * * * * * * * * *--->
-
-	<!--- get all --->
-	<cffunction name="getAll" access="public" output="false" returntype="struct">
-		<cfreturn getLoadedObjectsPlugin('RawData').getAll(this) />
-	</cffunction>
-
-	<!--- set all --->
-	<cffunction name="setAll" access="public" output="false" returntype="any">
-		<cfargument name="RawData" type="any" required="true" hint="Can be a struct or a query or an array of structs" />
-		<cfargument name="SkipSets" type="boolean" default="false" hint="If true, directly sets the raw data without running any setters or looping." />
-		<cfreturn getLoadedObjectsPlugin('RawData').setAll(this, arguments.RawData, arguments.SkipSets) />
-	</cffunction>
 
 	<!--- get raw data --->
 	<cffunction name="getRawData" access="public" output="false" returntype="any">
@@ -167,15 +178,20 @@
 	</cffunction>
 
 	<!--- set raw data --->
-	<cffunction name="setRawData" access="public" output="false" returntype="any" hint="Set appropriate raw data manager based on provided raw type.">
-		<cfargument name="RawData" type="any" default="" hint="Struct or query or array-of-structs" />
-		<cfset variables.LoadedObjects.RawData.Manager = getLoadedObjectsPlugin('RawData').createRawData(this, arguments.RawData) />
-		<cfreturn this />
+	<cffunction name="setRawData" access="public" output="false" returntype="any">
+		<cfargument name="RawData" type="any" default="" hint="Can be a struct, or a query, or an array of structs - defaults to an empty struct." />
+		<cfreturn getLoadedObjectsPlugin('RawData').setRawData(this, arguments.RawData) />
 	</cffunction>
 
 	<!--- get raw data manager --->
 	<cffunction name="getRawDataManager" access="public" output="false" returntype="any">
 		<cfreturn variables.LoadedObjects.RawData.Manager />
+	</cffunction>
+
+	<!--- set raw data manager --->
+	<cffunction name="setRawDataManager" access="public" output="false" returntype="any">
+		<cfargument name="RawDataManager" type="any" required="true" />
+		<cfreturn variables.LoadedObjects.RawData.Manager = arguments.RawDataManager />
 	</cffunction>
 
 <!--- * * * * * * * * * * *--->
@@ -186,12 +202,12 @@
 	<cffunction name="getHasBeenSet" access="public" output="false" returntype="struct">
 		<cfreturn variables.LoadedObjects.RawData.HasBeenSet />
 	</cffunction>
-	
+
 	<!--- clear has been set --->
 	<cffunction name="clearHasBeenSet" access="public" output="false" returntype="any">
 		<cfset variables.LoadedObjects.RawData.HasBeenSet = StructNew() />
 		<cfreturn this />
-	</cffunction>	
+	</cffunction>
 
 <!--- * * * * * * * * * * * * * --->
 <!--- * * ON MISSING METHOD * * --->
