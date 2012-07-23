@@ -12,11 +12,21 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		<cfreturn this />
 	</cffunction>
 
-	<!--- list property values --->
-	<cffunction name="listPropertyValues" access="public" output="false" returntype="string">
+	<!--- list values --->
+	<cffunction name="listCollectionValues" access="public" output="false" returntype="string">
 		<cfargument name="PropertyName" type="string" required="true" hint="Property/column name" />
-		<cfreturn getLoadedObjectsPlugin('Collection').listPropertyValues(this, arguments.PropertyName) />
+		<cfreturn getLoadedObjectsPlugin('Collection').listCollectionValues(this, arguments.PropertyName) />
 	</cffunction>
+
+	<!--- TODO: sum(property:string) - use ArraySum I think --->
+
+	<!--- TODO: avg(property:string) - use ArrayAvg I think --->
+
+	<!--- TODO: min(property:string) --->
+
+	<!--- TODO: max(property:string) --->
+
+	<!--- TODO: count(property:string) --->
 
 	<!--- seek: returns snapshot of data at first row whose property matches given value, without moving the cursor. This was intended for use with primary keys.
 	<cffunction name="seek" access="public" output="false" returntype="struct">
