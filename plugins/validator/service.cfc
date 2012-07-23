@@ -66,7 +66,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 			</cfif>
 		</cfif>
 
-		<!--- min value --->
+		<!--- min length --->
 		<cfif BO.existsLoadedObjectsMetadata(PropertyName, 'MinLength')>
 			<cfset ValidationResult = validateMinLength(ObjectPath, PropertyName, DisplayName, Type, Value, BO.getLoadedObjectsMetadata(PropertyName, 'MinLength')) />
 			<cfif StructCount(ValidationResult)>
@@ -74,7 +74,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 			</cfif>
 		</cfif>
 
-		<!--- min value --->
+		<!--- min length --->
 		<cfif BO.existsLoadedObjectsMetadata(PropertyName, 'MaxLength')>
 			<cfset ValidationResult = validateMaxLength(ObjectPath, PropertyName, DisplayName, Type, Value, BO.getLoadedObjectsMetadata(PropertyName, 'MaxLength')) />
 			<cfif StructCount(ValidationResult)>
@@ -197,7 +197,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 			var Value = arguments.Value;
 			var AllowedValues = arguments.AllowedValues;
 		</cfscript>
-		
+
 		<cfif ListLen(AllowedValues)>
 			<cfswitch expression="#Type#">
 				<cfcase value="string,numeric,boolean,date,uuid,guid,variableName">
@@ -207,7 +207,7 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 				</cfcase>
 			</cfswitch>
 		</cfif>
-		
+
 		<cfreturn StructNew() />
 	</cffunction>
 
