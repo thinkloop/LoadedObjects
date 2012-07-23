@@ -23,12 +23,12 @@
 	<cffunction name="set" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
 
 		<cfscript>
-			var Service = getLoadedObjectsPlugin('RawData');
-
 			var PropertyName = arguments.PropertyName;
 			var Value = arguments.Value;
+			var RowNum = arguments.RowNum;
 
 			var CustomFunctionName = 'set#PropertyName#';
 			var CustomFunction = '';
@@ -37,10 +37,10 @@
 		<!--- if a real function exists, use it --->
 		<cfif existsFunction(CustomFunctionName)>
 			<cfset CustomFunction = variables[CustomFunctionName] />
-			<cfreturn CustomFunction(Value) />
+			<cfreturn CustomFunction(Value, RowNum) />
 		</cfif>
 
-		<cfset Service.set(this, PropertyName, Value) />
+		<cfset setValue(PropertyName, Value, RowNum) />
 
 		<cfreturn this />
 	</cffunction>
@@ -48,11 +48,11 @@
 	<!--- get --->
 	<cffunction name="get" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
 
 		<cfscript>
-			var Service = getLoadedObjectsPlugin('RawData');
-
 			var PropertyName = arguments.PropertyName;
+			var RowNum = arguments.RowNum;
 
 			var CustomFunctionName = 'get#PropertyName#';
 			var CustomFunction = '';
@@ -61,23 +61,25 @@
 		<!--- if a real function exists, use it --->
 		<cfif existsFunction(CustomFunctionName)>
 			<cfset CustomFunction = variables[CustomFunctionName] />
-			<cfreturn CustomFunction() />
+			<cfreturn CustomFunction(RowNum) />
 		</cfif>
 
-		<cfreturn Service.get(this, PropertyName) />
+		<cfreturn getValue(PropertyName, RowNum) />
 	</cffunction>
 
 	<!--- set value: convenience function so that BO's can easily get/set properties when overriding - don't use this unless you HAVE to --->
 	<cffunction name="setValue" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
-		<cfreturn getLoadedObjectsPlugin('RawData').set(this, arguments.PropertyName, arguments.Value) />
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
+		<cfreturn getLoadedObjectsPlugin('RawData').set(this, arguments.PropertyName, arguments.Value, arguments.RowNum) />
 	</cffunction>
 
 	<!--- get value: convenience function so that BO's can easily get/set properties when overriding - don't use this unless you HAVE to --->
 	<cffunction name="getValue" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
-		<cfreturn getLoadedObjectsPlugin('RawData').get(this, arguments.PropertyName) />
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
+		<cfreturn getLoadedObjectsPlugin('RawData').get(this, arguments.PropertyName, arguments.RowNum) />
 	</cffunction>
 
 	<!--- is null --->
@@ -239,15 +241,24 @@
 		<!--- get --->
 		<cfif MissingMethodNameLength gt GetPrefixLength AND Left(MissingMethodName, GetPrefixLength) is GetPrefix>
 			<cfset PropertyName = Right(MissingMethodName, MissingMethodNameLength - GetPrefixLength) />
-			<cfreturn get(PropertyName) />
+			<cfset KeyList = StructKeyList(MissingMethodArguments) />
+
+			<cfif ListLen(KeyList) gte 1>
+				<cfreturn get(PropertyName, MissingMethodArguments[ListGetat(KeyList, 1)]) />
+			<cfelse>
+				<cfreturn get(PropertyName) />
+			</cfif>
 
 		<!--- set --->
 		<cfelseif MissingMethodNameLength gt SetPrefixLength AND Left(MissingMethodName, SetPrefixLength) is SetPrefix>
 			<cfset PropertyName = Right(MissingMethodName, MissingMethodNameLength - SetPrefixLength) />
 			<cfset KeyList = StructKeyList(MissingMethodArguments) />
 
-			<cfif ListLen(KeyList)>
-				<cfreturn set(PropertyName, MissingMethodArguments[listfirst(KeyList)]) />
+			<cfif ListLen(KeyList) gte 2>
+				<cfreturn set(PropertyName, MissingMethodArguments[ListGetat(KeyList, 1)], MissingMethodArguments[ListGetat(KeyList, 2)]) />
+			<cfelseif ListLen(KeyList) gte 1>
+
+				<cfreturn set(PropertyName, MissingMethodArguments[ListGetat(KeyList, 1)]) />
 			<cfelse>
 				<cfreturn set(PropertyName, '') />
 			</cfif>

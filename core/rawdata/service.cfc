@@ -10,14 +10,15 @@
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var PropertyName = arguments.PropertyName;
 			var Value = arguments.Value;
 			var HasBeenSet = BO.getHasBeenSet();
+			var CurrentRow = Max(1, arguments.RowNum);
 
-			var CurrentRow = Max(1, BO.getCurrentRow());
 			var ChildObject = '';
 			var ChildObjectName = '';
 			var ChildPropertyName = '';
@@ -34,6 +35,11 @@
 		<!--- mark has been set --->
 		<cfset HasBeenSet[CurrentRow][PropertyName] = true />
 
+		<!--- make sure totalrows is good --->
+		<cfif CurrentRow gt BO.getTotalRows()>
+			<cfset BO.setTotalRows(CurrentRow) />
+		</cfif>
+
 		<cfreturn BO />
 	</cffunction>
 
@@ -41,13 +47,14 @@
 	<cffunction name="get" access="public" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="PropertyName" type="string" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var PropertyName = arguments.PropertyName;
 			var HasBeenSet = BO.getHasBeenSet();
 			var RawValue = '';
-			var CurrentRow = Max(1, BO.getCurrentRow());
+			var CurrentRow = Max(1, arguments.RowNum);
 
 			var ChildObject = '';
 			var ChildObjectName = '';
@@ -105,7 +112,7 @@
 		<cfscript>
 			var BO = arguments.BO;
 			var Direction = arguments.Direction;
-			var CurrentRow = BO.getCurrentRow();
+			var CurrentRow = BO.getCurrentRow(false);
 			var TotalNumRows = BO.getTotalRows();
 		</cfscript>
 
@@ -305,13 +312,13 @@
 			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>
 				<cfset DataManager.init([RawData]) />
 			<cfelse>
-				<cfset DataManager = createObject('component', 'types.arrayofstructs').init([RawData]) />
+				<cfset DataManager = createObject('component', 'types.structofstructs').init({ 1 = RawData}) />
 			</cfif>
 		<cfelse>
 			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>
 				<cfset DataManager.init([StructNew()]) />
 			<cfelse>
-				<cfset DataManager = createObject('component', 'types.arrayofstructs').init([StructNew()]) />
+				<cfset DataManager = createObject('component', 'types.structofstructs').init({1 = StructNew()}) />
 			</cfif>
 		</cfif>
 
