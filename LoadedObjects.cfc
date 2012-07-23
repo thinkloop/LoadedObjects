@@ -9,10 +9,10 @@
 			var PluginsPath = Trim(arguments.PluginsPath);
 
 			// get the absolute path of the plugins folder from the provided dot-notation path
-			var PluginsPathAbsolute = Replace(ExpandPath('/'), '\', '/', 'all') & Replace(PluginsPath, '.', '/', 'all');
+			var PluginsPathAbsolute = ExpandPath(Replace(PluginsPath, '.', '/', 'all'));
 
 			// read plugin sub-folder names from the file-system
-			var PluginsFolderNames = CreateObject('java', 'java.io.File').init(PluginsPathAbsolute).list();
+			var PluginsFolderNames = DirectoryList(PluginsPathAbsolute, false, 'name');
 			var currentIndex = 0;
 
 			variables.ObjectPathPrefix = '';
@@ -38,7 +38,7 @@
 
 		<!--- loop through plugin subfolders and add each as a plugin --->
 		<cfloop from="1" to="#ArrayLen(PluginsFolderNames)#" index="currentIndex">
-			<cfset addPlugin(PluginsPath & '.' & PluginsFolderNames[currentIndex]) />
+			<cfset addPlugin(PluginsPath & '.' & PluginsFolderNames[ListFirst(currentIndex, '.')]) />
 		</cfloop>
 
 		<cfreturn this />
@@ -158,6 +158,10 @@
 			var PropertyName = arguments.PropertyName;
 			var AttributeName = arguments.AttributeName;
 			var Value = arguments.Value;
+
+			if (not exists(ObjectName, PropertyName, AttributeName)) {
+				new(ObjectName);
+			}
 
 			LoadedObjectsMetadata[ObjectPath]['Properties'][PropertyName][AttributeName] = Value;
 		</cfscript>
