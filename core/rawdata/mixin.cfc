@@ -9,7 +9,7 @@
 			variables.LoadedObjects.RawData.TotalRows = 0;
 			variables.LoadedObjects.RawData.HasBeenSet = StructNew();
 
-			setRawData();
+			setRawData(StructNew());
 			clearHasBeenSet();
 		</cfscript>
 		<cfreturn this />
