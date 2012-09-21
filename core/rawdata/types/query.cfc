@@ -38,9 +38,14 @@
 		<cfscript>
 			var PropertyName = arguments.PropertyName;
 			var RowNum = arguments.RowNum;
+			var Value = variables.RawData[PropertyName][RowNum];
 		</cfscript>
 
-		<cfreturn variables.RawData[PropertyName][RowNum] />
+		<cfif isSimpleValue(Value) AND Value is getQueryNullValue()>
+			<cfthrow message="Property #arguments.PropertyName#[#arguments.RowNum#] has a value of QueryNullValue." detail="An existsRaw() check should be done before getRaw()." />
+		<cfelse>
+			<cfreturn Value />
+		</cfif>
 	</cffunction>
 
 	<!--- exists raw --->
@@ -53,7 +58,7 @@
 			var RowNum = arguments.RowNum;
 		</cfscript>
 
-		<cfif RowNum lte numRows() AND StructKeyExists(variables.RawData, PropertyName) AND getRaw(PropertyName, RowNum) neq getQueryNullValue() >
+		<cfif RowNum lte numRows() AND StructKeyExists(variables.RawData, PropertyName) AND variables.RawData[PropertyName][RowNum] neq getQueryNullValue()>
 			<cfreturn true />
 		</cfif>
 
@@ -66,7 +71,7 @@
 	</cffunction>
 
 	<!--- get raw with prefix --->
-	<cffunction name="getRawWithoutPrefix" access="public" output="false" returntype="struct">
+	<cffunction name="getRawWithoutPrefix" access="public" output="false" returntype="struct" hint="Return the query columns whose names start with the given prefix.">
 		<cfargument name="Prefix" type="string" required="true" hint="The characters a property name must begin with to be returned." />
 		<cfargument name="RowNum" type="numeric" required="true" />
 
@@ -82,8 +87,8 @@
 		</cfscript>
 
 		<cfloop list="#ColumnList#" index="currentPropertyName">
-			<cfif Len(currentPropertyName) gt PrefixLength AND Left(currentPropertyName, PrefixLength) is Prefix>
-				<cfset FinalProperties[Right(currentPropertyName, Len(currentPropertyName) - PrefixLength)] = getRaw(currentPropertyName, RowNum) />
+			<cfif Len(currentPropertyName) gt PrefixLength AND Left(currentPropertyName, PrefixLength) is Prefix AND existsRaw(currentPropertyName, RowNum)>
+				<cfset FinalProperties[Right(currentPropertyName, Len(currentPropertyName) - PrefixLength)] = variables.RawData[currentPropertyName][RowNum] />
 			</cfif>
 		</cfloop>
 
