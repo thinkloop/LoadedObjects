@@ -9,7 +9,7 @@
 			var PluginsPath = Trim(arguments.PluginsPath);
 
 			// get the absolute path of the plugins folder from the provided dot-notation path
-			var PluginsPathAbsolute = ExpandPath(Replace(PluginsPath, '.', '/', 'all'));
+			var PluginsPathAbsolute = dotPathToAbsolute(PluginsPath);
 
 			// read plugin sub-folder names from the file-system
 			var PluginsFolderNames = DirectoryList(PluginsPathAbsolute, false, 'name');
@@ -49,17 +49,19 @@
 		<cfargument name="ObjectName" type="string" required="true" hint="The name of the business object (aka. the object-path minus any defined path-prefix)." />
 
 		<cfscript>
-			var BO = '';
-			var MetaData = '';
-			var currentPlugin = '';
 			var ObjectName = arguments.ObjectName;
+			var BO = '';
+
+			var ObjectPath = getObjectPathFromName(ObjectName);
 		</cfscript>
 
-		<!--- create object instance --->
-		<cfset BO = CreateObject('component', variables.ObjectPathPrefix & ObjectName) />
+		<!--- create object --->
+		<cfif Len(ObjectPath)>
+			<cfset BO = CreateObject('component', ObjectPath) />
 
-		<cfif not exists(ObjectName)>
-			<cfset addLoadedObjectMetadata(BO) />
+		<!--- if object has never been created before, load its metadata and create it --->
+		<cfelse>
+			<cfset BO = addLoadedObjectMetadata(ObjectName) />
 		</cfif>
 
 		<!--- mixin plugins --->
@@ -80,15 +82,17 @@
 		<cfargument name="AttributeName" type="string" default="" hint="If no attribute name is provided, returns metadata for all attributes of specified property." />
 
 		<cfscript>
-			var LoadedObjectsMetadata = variables.LoadedObjectsMetadata.ByPath;
 			var ObjectName = arguments.ObjectName;
-			var ObjectPath = variables.ObjectPathPrefix & ObjectName;
 			var PropertyName = arguments.PropertyName;
 			var AttributeName = arguments.AttributeName;
+
+			var LoadedObjectsMetadata = variables.LoadedObjectsMetadata.ByPath;
+			var ObjectPath = getObjectPathFromName(ObjectName);
+
 			var ObjectType = '';
 		</cfscript>
 
-		<cfif Len(ObjectName)>
+		<cfif Len(ObjectPath)>
 			<cfif Len(PropertyName)>
 				<cfif Len(AttributeName)>
 
@@ -152,12 +156,13 @@
 		<cfargument name="Value" type="any" required="true" />
 
 		<cfscript>
-			var LoadedObjectsMetadata = variables.LoadedObjectsMetadata.ByPath;
 			var ObjectName = arguments.ObjectName;
-			var ObjectPath = variables.ObjectPathPrefix & ObjectName;
 			var PropertyName = arguments.PropertyName;
 			var AttributeName = arguments.AttributeName;
 			var Value = arguments.Value;
+
+			var LoadedObjectsMetadata = variables.LoadedObjectsMetadata.ByPath;
+			var ObjectPath = getObjectPathFromName(ObjectName);
 
 			if (not exists(ObjectName, PropertyName, AttributeName)) {
 				new(ObjectName);
@@ -175,29 +180,36 @@
 		<cfargument name="PropertyName" type="string" default="" hint="If no property name is provided, returns metadata for all properties of specified object." />
 		<cfargument name="AttributeName" type="string" default="" hint="If no attribute name is provided, returns metadata for all attributes of specified property." />
 
-		<cfset var collection = variables.LoadedObjectsMetadata.ByPath />
-		<cfset var ObjectPath = variables.ObjectPathPrefix & arguments.ObjectName />
+		<cfscript>
+			var ObjectName = arguments.ObjectName;
+			var PropertyName = arguments.PropertyName;
+			var AttributeName = arguments.AttributeName;
+
+			var collection = variables.LoadedObjectsMetadata.ByPath;
+			var Prefix = variables.ObjectPathPrefix;
+			var ObjectPath = getObjectPathFromName(ObjectName);
+		</cfscript>
 
 		<!--- object path --->
-		<cfif not StructKeyExists(collection, ObjectPath)>
+		<cfif not Len(ObjectPath)>
 			<cfreturn false />
-		<cfelseif not Len(arguments.PropertyName)>
+		<cfelseif not Len(PropertyName)>
 			<cfreturn true />
 		<cfelse>
 			<cfset collection = collection[ObjectPath]['Properties'] />
 		</cfif>
 
 		<!--- property name--->
-		<cfif not StructKeyExists(collection, arguments.PropertyName)>
+		<cfif not StructKeyExists(collection, PropertyName)>
 			<cfreturn false />
-		<cfelseif not Len(arguments.AttributeName)>
+		<cfelseif not Len(AttributeName)>
 			<cfreturn true />
 		<cfelse>
-			<cfset collection = collection[arguments.PropertyName] />
+			<cfset collection = collection[PropertyName] />
 		</cfif>
 
 		<!--- attribute name - the attribute 'default' is special and should always return true --->
-		<cfif arguments.AttributeName is 'Default' OR StructKeyExists(collection, arguments.AttributeName)>
+		<cfif AttributeName is 'Default' OR StructKeyExists(collection, AttributeName)>
 			<cfreturn true />
 		<cfelse>
 			<cfreturn false />
@@ -210,7 +222,7 @@
 		<cfargument name="ChildPropertyName" type="string" required="true" hint="The name of the child property with its parent object name prepended to it (i.e. Account.ID = AccountID)." />
 
 		<cfscript>
-			var ObjectPath = variables.ObjectPathPrefix & arguments.ObjectName;
+			var ObjectPath = getObjectPathFromName(ObjectName);
 			var ChildPropertyName = arguments.ChildPropertyName;
 			var ChildPropertyNames = variables.LoadedObjectsMetadata.ByPath[ObjectPath].ChildPropertyNames;
 		</cfscript>
@@ -224,7 +236,7 @@
 		<cfargument name="ChildPropertyName" type="string" required="true" hint="The name of the child property with its parent object name prepended to it (i.e. Account.ID = AccountID)." />
 
 		<cfscript>
-			var ObjectPath = variables.ObjectPathPrefix & arguments.ObjectName;
+			var ObjectPath = getObjectPathFromName(ObjectName);
 			var ChildPropertyName = arguments.ChildPropertyName;
 			var ChildPropertyNames = variables.LoadedObjectsMetadata.ByPath[ObjectPath].ChildPropertyNames;
 		</cfscript>
@@ -263,11 +275,16 @@
 
 	<!--- add loaded object --->
 	<cffunction name="addLoadedObjectMetadata" access="private" output="false" returntype="any" hint="Use new() to add an object instead of this function.">
-		<cfargument name="BO" type="any" required="true" hint="The business object to parse and add." />
+		<cfargument name="ObjectName" type="string" required="true" />
 
 		<cfscript>
-			var BO = arguments.BO;
-			var BOMetadata = GetMetaData(BO);
+			var ObjectName = arguments.ObjectName;
+			var ObjectPath = '';
+			var ObjectPathWithPrefix = variables.ObjectPathPrefix & ObjectName;
+			var ObjectPathNaked = ObjectName;
+
+			var BO = '';
+			var BOMetadata = '';
 
 			var currentPropertyIndex = '';
 			var currentProperty = '';
@@ -279,7 +296,20 @@
 			var ObjectMetadata = StructNew();
 			var Properties = StructNew();
 			var ChildPropertyNames = StructNew();
-			var ChildObjectMetadata = '';
+			var ExtendsObjectProperties = StructNew();
+
+			if (FileExists('#dotPathToAbsolute(ObjectPathWithPrefix)#.cfc')) {
+				ObjectPath = ObjectPathWithPrefix;
+			}
+			else if (FileExists('#dotPathToAbsolute(ObjectPathNaked)#.cfc')) {
+				ObjectPath = ObjectPathNaked;
+			}
+			else {
+				throw('Neither #ObjectPathWithPrefix# nor #ObjectPathNaked# exist. #dotPathToAbsolute(ObjectPathWithPrefix)#. #dotPathToAbsolute(ObjectPathNaked)#.');
+			}
+
+			BO = createObject('component', ObjectPath);
+			BOMetadata = GetMetaData(BO);
 
 			ObjectMetadata.Name = ListLast(BOMetadata.Name, '.');
 			ObjectMetadata.Path = BOMetadata.Name; // (i.e. objects.account)
@@ -349,14 +379,48 @@
 			</cfloop>
 		</cfif>
 
+		<cfif StructKeyExists(BOMetadata, 'extends') AND ListLast(BOMetadata.extends.name, '.') neq 'Component'>
+			<cfset StructAppend(ExtendsObjectProperties, new(BOMetadata.extends.name).getLoadedObjectsMetaData().Properties) />
+		</cfif>
+
 		<!--- add to metadata collections --->
 		<cfscript>
-			ObjectMetadata.Properties = Properties;
+			StructAppend(ExtendsObjectProperties, Properties);
+			ObjectMetadata.Properties = ExtendsObjectProperties;
 			ObjectMetadata.ChildPropertyNames = ChildPropertyNames;
 			variables.LoadedObjectsMetadata.ByPath[ObjectMetadata.Path] = ObjectMetadata;
 		</cfscript>
 
-		<cfreturn ObjectMetadata />
+		<cfreturn BO />
+	</cffunction>
+
+	<!--- get object path from name --->
+	<cffunction name="getObjectPathFromName" access="private" output="false" returntype="string">
+		<cfargument name="ObjectName" type="string" required="true" />
+
+		<cfscript>
+			var ObjectName = arguments.ObjectName;
+
+			var collection = variables.LoadedObjectsMetadata.ByPath;
+			var Prefix = variables.ObjectPathPrefix;
+
+			var ObjectPathWithPrefix = Prefix & ObjectName;
+			var ObjectPathNaked = ObjectName;
+		</cfscript>
+
+		<cfif StructKeyExists(collection, ObjectPathWithPrefix)>
+			<cfreturn ObjectPathWithPrefix />
+		<cfelseif StructKeyExists(collection, ObjectPathNaked)>
+			<cfreturn ObjectPathNaked />
+		<cfelse>
+			<cfreturn '' />
+		</cfif>
+	</cffunction>
+
+	<!--- dot path to absolute --->
+	<cffunction name="dotPathToAbsolute" access="private" output="false" returntype="string">
+		<cfargument name="PathInDotNotation" type="string" required="true" />
+		<cfreturn ExpandPath(Replace(arguments.PathInDotNotation, '.', '/', 'all')) />
 	</cffunction>
 
 <!--- * * * * * * * --->

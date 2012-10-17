@@ -165,16 +165,19 @@
 	<!--- get all values for all properties --->
 	<cffunction name="getAll" access="public" output="false" returntype="struct">
 		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
 
 		<cfscript>
 			var BO = arguments.BO;
+			var CurrentRow = arguments.RowNum;
+
 			var Properties = BO.getLoadedObjectsMetadata().Properties;
 			var ReturnStruct = StructNew();
 			var currentPropertyName = '';
 		</cfscript>
 
 		<cfloop collection="#Properties#" item="currentPropertyName">
-			<cfset ReturnStruct[currentPropertyName] = BO.get(currentPropertyName) />
+			<cfset ReturnStruct[currentPropertyName] = BO.get(currentPropertyName, CurrentRow) />
 		</cfloop>
 
 		<cfreturn ReturnStruct />
@@ -285,7 +288,7 @@
 	<!--- set raw data --->
 	<cffunction name="setRawData" access="public" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
-		<cfargument name="RawData" type="any" default="" hint="Can be a struct, or a query, or an array of structs - defaults to an empty struct." />
+		<cfargument name="RawData" type="any" default="" hint="Can be a struct, a struct of structs, a query, or an array of structs - defaults to an empty struct of structs." />
 
 		<cfscript>
 			var BO = arguments.BO;
@@ -309,10 +312,16 @@
 				<cfset DataManager = createObject('component', 'types.arrayofstructs').init(RawData) />
 			</cfif>
 		<cfelseif IsStruct(RawData)>
+
+			<!--- if rawdata is a single struct representing a single row, put it in a parent struct collection --->
+			<cfif not StructKeyExists(RawData, '1')>
+				<cfset RawData = { 1 = RawData } />
+			</cfif>
+
 			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>
 				<cfset DataManager.init([RawData]) />
 			<cfelse>
-				<cfset DataManager = createObject('component', 'types.structofstructs').init({ 1 = RawData}) />
+				<cfset DataManager = createObject('component', 'types.structofstructs').init(RawData) />
 			</cfif>
 		<cfelse>
 			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>

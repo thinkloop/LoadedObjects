@@ -9,7 +9,7 @@
 			variables.LoadedObjects.RawData.TotalRows = 0;
 			variables.LoadedObjects.RawData.HasBeenSet = StructNew();
 
-			setRawData(StructNew());
+			clear();
 			clearHasBeenSet();
 		</cfscript>
 		<cfreturn this />
@@ -106,7 +106,8 @@
 
 	<!--- get all --->
 	<cffunction name="getAll" access="public" output="false" returntype="struct">
-		<cfreturn getLoadedObjectsPlugin('RawData').getAll(this) />
+		<cfargument name="RowNumber" type="numeric" default="#getCurrentRow()#" />
+		<cfreturn getLoadedObjectsPlugin('RawData').getAll(this, arguments.RowNumber) />
 	</cffunction>
 
 	<!--- set all --->
@@ -142,7 +143,7 @@
 			return RowNumber;
 		</cfscript>
 	</cffunction>
-	<cffunction name="setCurrentRow" access="public" output="false" returntype="any" hint="Value should be zero (which returns 1 from the getter by default), unless we are in the middle of looping.">
+	<cffunction name="setCurrentRow" access="public" output="false" returntype="any" hint="RowNumber is usually 0 (which returns 1 from the getter by default), unless we are in the middle of looping.">
 		<cfargument name="RowNumber" type="numeric" required="true" />
 		<cfset variables.LoadedObjects.RawData.CurrentRow = arguments.RowNumber />
 
@@ -194,6 +195,11 @@
 	<cffunction name="setRawDataManager" access="public" output="false" returntype="any">
 		<cfargument name="RawDataManager" type="any" required="true" />
 		<cfreturn variables.LoadedObjects.RawData.Manager = arguments.RawDataManager />
+	</cffunction>
+
+	<!--- clear --->
+	<cffunction name="clear" access="public" output="false" returntype="any">
+		<cfreturn setRawData(StructNew()) />
 	</cffunction>
 
 <!--- * * * * * * * * * * *--->
