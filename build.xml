@@ -30,7 +30,9 @@
 		<exclude name="**/*.gitignore**" />
 		<exclude name="**/*.svn/**"/>
 		
+		<exclude name="**/*www/**"/>
 		<exclude name="**/*tests/**"/>
+		<exclude name="**/*plugins_disabled/**"/>
 	</fileset>
 	
 	<!-- copy files locally -->
