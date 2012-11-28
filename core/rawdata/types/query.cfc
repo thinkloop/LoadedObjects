@@ -56,11 +56,16 @@
 		<cfscript>
 			var PropertyName = arguments.PropertyName;
 			var RowNum = arguments.RowNum;
-		</cfscript>
+			var value = '';
 
-		<cfif RowNum lte numRows() AND StructKeyExists(variables.RawData, PropertyName) AND variables.RawData[PropertyName][RowNum] neq getQueryNullValue()>
-			<cfreturn true />
-		</cfif>
+			if (RowNum lte numRows() AND StructKeyExists(variables.RawData, PropertyName)) {
+				value = variables.RawData[PropertyName][RowNum];
+
+				if (not IsSimplevalue(value) OR not value is getQueryNullValue()) {
+					return true;
+				}
+			}
+		</cfscript>
 
 		<cfreturn false />
 	</cffunction>
@@ -98,6 +103,12 @@
 	<!--- get raw data --->
 	<cffunction name="getRawData" access="public" output="false" returntype="any">
 		<cfreturn variables.RawData />
+	</cffunction>
+
+	<!--- get raw row --->
+	<cffunction name="getRawRow" access="public" output="false" returntype="any">
+		<cfargument name="RowNum" type="numeric" required="true" />
+		<cfthrow message="Function query.getRawRow() not supported - must use structofstructs or arrayofstructs." />
 	</cffunction>
 
 <!--- * * * * * * * * --->
@@ -164,7 +175,22 @@
 	</cffunction>
 
 	<!--- get query null value --->
-	<cffunction name="getQueryNullValue" access="private" output="false" returntype="any">
+	<cffunction name="getQueryNullValue" access="private" output="false" returntype="any" hint="Used to mimic a null value, such as when a struct is missing a key. Primarirly to have feature parity with structofstructs.cfc and arrayofstructs.cfc.">
 		<cfreturn 'LoadedObjectsQueryNullValue000lasfhiuewypwsduigvbmdassbyjhewqyg238496tfwegbgsdajvhavuy6f7342t9gq78o3fguy' />
+	</cffunction>
+
+	<!--- remove row --->
+	<cffunction name="removeRow" access="public" output="false" returntype="any">
+		<cfargument name="RowNum" type="numeric" required="true" />
+		<cfif numRows() gt 1>
+			<cfset variables.RawData.RemoveRows(arguments.RowNum - 1, 1) />
+		<cfelse>
+			<cfquery name="variables.RawData" dbtype="query">
+			SELECT *
+			FROM variables.RawData
+			WHERE 1=0
+			</cfquery>
+		</cfif>
+		<cfreturn this />
 	</cffunction>
 </cfcomponent>

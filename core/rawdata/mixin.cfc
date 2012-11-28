@@ -67,7 +67,7 @@
 		<cfreturn getValue(PropertyName, RowNum) />
 	</cffunction>
 
-	<!--- set value: convenience function so that BO's can easily get/set properties when overriding - don't use this unless you HAVE to --->
+	<!--- set value: convenience function so that BO's can easily get/set properties when overriding - don't use this unless you HAVE to - use regular set() --->
 	<cffunction name="setValue" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
@@ -75,7 +75,7 @@
 		<cfreturn getLoadedObjectsPlugin('RawData').set(this, arguments.PropertyName, arguments.Value, arguments.RowNum) />
 	</cffunction>
 
-	<!--- get value: convenience function so that BO's can easily get/set properties when overriding - don't use this unless you HAVE to --->
+	<!--- get value: convenience function so that BO's can easily get/set properties when overriding - don't use this unless you HAVE to - use regular get() --->
 	<cffunction name="getValue" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
@@ -106,14 +106,27 @@
 
 	<!--- get all --->
 	<cffunction name="getAll" access="public" output="false" returntype="struct">
-		<cfargument name="RowNumber" type="numeric" default="#getCurrentRow()#" />
-		<cfreturn getLoadedObjectsPlugin('RawData').getAll(this, arguments.RowNumber) />
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
+		<cfreturn getLoadedObjectsPlugin('RawData').getAll(this, arguments.RowNum) />
+	</cffunction>
+
+	<!--- get all simple --->
+	<cffunction name="getAllSimple" access="public" output="false" returntype="struct">
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
+		<cfreturn getLoadedObjectsPlugin('RawData').getAll(this, arguments.RowNum, true) />
 	</cffunction>
 
 	<!--- set all --->
 	<cffunction name="setAll" access="public" output="false" returntype="any">
 		<cfargument name="RawData" type="any" default="" hint="Can be a struct, or a query, or an array of structs - defaults to an empty struct." />
-		<cfreturn getLoadedObjectsPlugin('RawData').setAll(this, arguments.RawData) />
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
+		<cfreturn getLoadedObjectsPlugin('RawData').setAll(this, arguments.RawData, arguments.RowNum) />
+	</cffunction>
+
+	<!--- add all --->
+	<cffunction name="addAll" access="public" output="false" returntype="any">
+		<cfargument name="RawData" type="any" default="" hint="Can be a struct, or a query, or an array of structs - defaults to an empty struct." />
+		<cfreturn getLoadedObjectsPlugin('RawData').addAll(this, arguments.RawData) />
 	</cffunction>
 
 <!--- * * * * * * *--->
@@ -123,38 +136,47 @@
 	<!--- loop --->
 	<cffunction name="loop" access="public" output="false" returntype="boolean">
 		<cfargument name="Direction" type="string" default="forward" hint="Can be: forward, reverse" />
-		<cfreturn getLoadedObjectsPlugin('RawData').loop(this, arguments.Direction) />
+		<cfargument name="StartRow" type="number" default="0" hint="The row num to start looping from. 0 ignores this property and starts from beginning." />
+		<cfargument name="EndRow" type="number" default="0" hint="Last row num to stop looping at. 0 ignores this property and loops entire collection." />
+		<cfreturn getLoadedObjectsPlugin('RawData').loop(this, arguments.Direction, arguments.StartRow, arguments.EndRow) />
 	</cffunction>
 
 	<!--- current row --->
 	<cffunction name="getCurrentRow" access="public" output="false" returntype="numeric" hint="Returns the current row">
 		<cfscript>
-			var RowNumber = variables.LoadedObjects.RawData.CurrentRow;
+			var RowNum = variables.LoadedObjects.RawData.CurrentRow;
 			var TotalRows = getTotalRows();
 
-			if (RowNumber lte 0) {
+			if (RowNum lte 0) {
 				return 0;
 			}
 
-			if (RowNumber gt TotalRows) {
+			if (RowNum gt TotalRows) {
 				return TotalRows;
 			}
 
-			return RowNumber;
+			return RowNum;
 		</cfscript>
 	</cffunction>
-	<cffunction name="setCurrentRow" access="public" output="false" returntype="any" hint="RowNumber is usually 0 (which returns 1 from the getter by default), unless we are in the middle of looping.">
-		<cfargument name="RowNumber" type="numeric" required="true" />
-		<cfset variables.LoadedObjects.RawData.CurrentRow = arguments.RowNumber />
+	<cffunction name="setCurrentRow" access="public" output="false" returntype="any" hint="RowNum is usually 0 (which returns 1 from the getter by default), unless we are in the middle of looping.">
+		<cfargument name="RowNum" type="numeric" required="true" />
+		<cfset variables.LoadedObjects.RawData.CurrentRow = arguments.RowNum />
 
-		<cfif arguments.RowNumber gt getTotalRows()>
-			<cfset setTotalRows(arguments.RowNumber) />
+		<cfif arguments.RowNum gt getTotalRows()>
+			<cfset setTotalRows(arguments.RowNum) />
 		</cfif>
 		<cfreturn this />
 	</cffunction>
 
 	<!--- total rows --->
-	<cffunction name="getTotalRows" access="public" output="false" returntype="numeric" hint="The total number of rows in the recordset.">
+	<cffunction name="getTotalRows" access="public" output="false" returntype="numeric" hint="The total number of rows, whether they actually exist in the underlying rawdata or not.">
+		<cfset RawDataManager = getRawDataManager() />
+		<cfif IsObject(RawDataManager)>
+			<cfreturn RawDataManager.numRows() />
+		<cfelse>
+			<cfreturn 0 />
+		</cfif>
+<!---
 		<cfscript>
 			var TotalRows = variables.LoadedObjects.RawData.TotalRows;
 		</cfscript>
@@ -164,12 +186,31 @@
 		</cfif>
 
 		<cfreturn TotalRows />
+--->
+
 	</cffunction>
 	<cffunction name="setTotalRows" access="public" output="false" returntype="any" hint="The total number of rows in the recordset.">
 		<cfargument name="TotalNumRows" type="numeric" required="true" />
 		<cfset variables.LoadedObjects.RawData.TotalRows = arguments.TotalNumRows />
 		<cfreturn this />
 	</cffunction>
+
+	<!--- should probably not be used, but maybe needed, not used for now
+	<cffunction name="getActualTotalRows" access="public" output="false" returntype="numeric" hint="The total number of rows in the underlying rawdata.">
+		<cfreturn getRawDataManager().numRows() />
+	</cffunction>
+	--->
+
+<!--- * * * * * * * * --->
+<!--- * * Rows * * * *--->
+<!--- * * * * * * * * --->
+
+	<!--- remove row --->
+	<cffunction name="removeRow" access="public" output="false" returntype="any">
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
+		<cfreturn getLoadedObjectsPlugin('RawData').removeRow(this, arguments.RowNum) />
+	</cffunction>
+
 
 <!--- * * * * * * * * * *--->
 <!--- * * RawData * * * *--->
@@ -214,6 +255,31 @@
 	<!--- clear has been set --->
 	<cffunction name="clearHasBeenSet" access="public" output="false" returntype="any">
 		<cfset variables.LoadedObjects.RawData.HasBeenSet = StructNew() />
+		<cfreturn this />
+	</cffunction>
+
+	<!--- all has been set --->
+	<cffunction name="allHasBeenSet" access="public" output="false" returntype="any">
+		<cfscript>
+			var Properties = getLoadedObjectsMetadata().Properties;
+			var RawDataManager = getRawDataManager();
+
+			var HasBeenSetStruct = StructNew();
+
+			var currentProperty = '';
+		</cfscript>
+
+		<cfloop condition="loop()">
+			<cfset HasBeenSetStruct[getCurrentRow()] = StructNew() />
+			<cfloop collection="#Properties#" item="currentProperty">
+				<cfif RawDataManager.existsRaw(currentProperty, getCurrentRow())>
+					<cfset HasBeenSetStruct[getCurrentRow()][currentProperty] = true />
+				</cfif>
+			</cfloop>
+		</cfloop>
+
+		<cfset variables.LoadedObjects.RawData.HasBeenSet = HasBeenSetStruct />
+
 		<cfreturn this />
 	</cffunction>
 

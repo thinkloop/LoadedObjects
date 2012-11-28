@@ -75,6 +75,10 @@
 		<cfreturn BO />
 	</cffunction>
 
+<!--- * * * * * * * * *--->
+<!--- * * METADATA * * --->
+<!--- * * * * * * * * *--->
+
 	<!--- get loaded object metadata --->
 	<cffunction name="get" access="public" output="false" returntype="any" hint="Get an element from the metadata tree.">
 		<cfargument name="ObjectName" type="string" default="" hint="The name of the business object (aka. the object-path minus any defined path-prefix). If no object name is provided, returns metadata for all objects." />
@@ -216,6 +220,10 @@
 		</cfif>
 	</cffunction>
 
+<!--- * * * * * * * * * * * *--->
+<!--- * * CHILD PROPERTY * * --->
+<!--- * * * * * * * * * * * *--->
+
 	<!--- get child property name --->
 	<cffunction name="getChildPropertyName" access="public" output="false" returntype="string">
 		<cfargument name="ObjectName" type="string" required="true" hint="The name of the parent object that has a property that is a child object with its own properties." />
@@ -243,6 +251,10 @@
 
 		<cfreturn StructKeyExists(ChildPropertyNames, ChildPropertyName) />
 	</cffunction>
+
+<!--- * * * * * * * * --->
+<!--- * * PLUGINS * * --->
+<!--- * * * * * * * * --->
 
 	<!--- add plugin --->
 	<cffunction name="addPlugin" access="public" output="false" returntype="any">

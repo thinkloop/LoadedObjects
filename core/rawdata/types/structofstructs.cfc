@@ -53,7 +53,7 @@
 			var RowNum = arguments.RowNum;
 		</cfscript>
 
-		<cfif StructKeyExists(variables.RawData[RowNum], PropertyName)>
+		<cfif StructKeyExists(variables.RawData, RowNum) AND StructKeyExists(variables.RawData[RowNum], PropertyName)>
 			<cfreturn true />
 		</cfif>
 
@@ -79,18 +79,25 @@
 			var FinalProperties = StructNew();
 		</cfscript>
 
-		<cfloop collection="#variables.RawData[RowNum]#" item="currentPropertyName">
-			<cfif Len(currentPropertyName) gt PrefixLength AND Left(currentPropertyName, PrefixLength) is Prefix>
-				<cfset FinalProperties[Right(currentPropertyName, Len(currentPropertyName) - PrefixLength)] = getRaw(currentPropertyName, RowNum) />
-			</cfif>
-		</cfloop>
-
+		<cfif StructKeyExists(variables.RawData, 'RowNum')>
+			<cfloop collection="#variables.RawData[RowNum]#" item="currentPropertyName">
+				<cfif Len(currentPropertyName) gt PrefixLength AND Left(currentPropertyName, PrefixLength) is Prefix>
+					<cfset FinalProperties[Right(currentPropertyName, Len(currentPropertyName) - PrefixLength)] = getRaw(currentPropertyName, RowNum) />
+				</cfif>
+			</cfloop>
+		</cfif>
 		<cfreturn FinalProperties />
 	</cffunction>
 
 	<!--- get raw data --->
-	<cffunction name="getRawData" access="public" output="false" returntype="array">
+	<cffunction name="getRawData" access="public" output="false" returntype="struct">
 		<cfreturn variables.RawData />
+	</cffunction>
+
+	<!--- get raw row (by reference) --->
+	<cffunction name="getRawRow" access="public" output="false" returntype="struct">
+		<cfargument name="RowNum" type="numeric" required="true" />
+		<cfreturn variables.RawData[RowNum] />
 	</cffunction>
 
 <!--- * * * * * * * * --->
@@ -118,6 +125,13 @@
 	<!--- add row --->
 	<cffunction name="addRow" access="private" output="false" returntype="any">
 		<cfset variables.RawData[numRows() + 1] = StructNew() />
+		<cfreturn this />
+	</cffunction>
+
+	<!--- remove row --->
+	<cffunction name="removeRow" access="public" output="false" returntype="any">
+		<cfargument name="RowNum" type="numeric" required="true" />
+		<cfset StructDelete(variables.RawData, arguments.RowNum, false) />
 		<cfreturn this />
 	</cffunction>
 </cfcomponent>

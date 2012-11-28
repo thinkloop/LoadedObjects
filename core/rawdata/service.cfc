@@ -35,11 +35,11 @@
 		<!--- mark has been set --->
 		<cfset HasBeenSet[CurrentRow][PropertyName] = true />
 
-		<!--- make sure totalrows is good --->
+		<!--- make sure totalrows is good
 		<cfif CurrentRow gt BO.getTotalRows()>
 			<cfset BO.setTotalRows(CurrentRow) />
 		</cfif>
-
+--->
 		<cfreturn BO />
 	</cffunction>
 
@@ -108,10 +108,14 @@
 	<cffunction name="loop" access="public" output="false" returntype="boolean">
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="Direction" type="string" default="forward" hint="Can be: forward, reverse" />
+		<cfargument name="StartRow" type="number" default="0" hint="The row num to start looping from. 0 ignores this property and starts from beginning." />
+		<cfargument name="EndRow" type="number" default="0" hint="Last row num to stop looping at. 0 loops entire collection." />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var Direction = arguments.Direction;
+			var StartRow = arguments.StartRow;
+			var EndRow = arguments.EndRow;
 			var CurrentRow = BO.getCurrentRow(false);
 			var TotalNumRows = BO.getTotalRows();
 		</cfscript>
@@ -125,11 +129,15 @@
 
 			<!--- if current row is bad, restart loop --->
 			<cfif CurrentRow lt 1 OR CurrentRow gt TotalNumRows>
-				<cfset BO.setCurrentRow(TotalNumRows) />
+				<cfif StartRow gte 1 AND StartRow lte TotalNumRows>
+					<cfset BO.setCurrentRow(StartRow) />
+				<cfelse>
+					<cfset BO.setCurrentRow(TotalNumRows) />
+				</cfif>
 				<cfreturn True />
 
 			<!--- if next record exists, increment row, return true --->
-			<cfelseif CurrentRow gt 1>
+			<cfelseif CurrentRow gt 1 AND (EndRow lte 0 OR CurrentRow gt EndRow)>
 				<cfset BO.setCurrentRow(CurrentRow - 1) />
 				<cfreturn True />
 
@@ -144,11 +152,15 @@
 
 			<!--- if current row is bad, restart loop --->
 			<cfif CurrentRow lt 1 OR CurrentRow gt TotalNumRows>
-				<cfset BO.setCurrentRow(1) />
+				<cfif StartRow gte 1 AND StartRow lte TotalNumRows>
+					<cfset BO.setCurrentRow(StartRow) />
+				<cfelse>
+					<cfset BO.setCurrentRow(1) />
+				</cfif>
 				<cfreturn True />
 
 			<!--- if next record exists, increment current row, return true --->
-			<cfelseif CurrentRow lt TotalNumRows>
+			<cfelseif CurrentRow lt TotalNumRows AND (EndRow lte 0 OR CurrentRow lt EndRow)>
 				<cfset BO.setCurrentRow(CurrentRow + 1) />
 				<cfreturn True />
 
@@ -162,14 +174,16 @@
 		<cfreturn False />
 	</cffunction>
 
-	<!--- get all values for all properties --->
+	<!--- get all --->
 	<cffunction name="getAll" access="public" output="false" returntype="struct">
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="RowNum" type="numeric" required="true" />
+		<cfargument name="NoChildObjects" type="boolean" default="false" hint="If true, excludes child cfcs from result." />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var CurrentRow = arguments.RowNum;
+			var NoChildObjects = arguments.NoChildObjects;
 
 			var Properties = BO.getLoadedObjectsMetadata().Properties;
 			var ReturnStruct = StructNew();
@@ -177,14 +191,16 @@
 		</cfscript>
 
 		<cfloop collection="#Properties#" item="currentPropertyName">
-			<cfset ReturnStruct[currentPropertyName] = BO.get(currentPropertyName, CurrentRow) />
+			<cfif not NoChildObjects OR not BO.getLoadedObjectsMetaData(currentPropertyName, 'IsObject')>
+				<cfset ReturnStruct[currentPropertyName] = BO.get(currentPropertyName, CurrentRow) />
+			</cfif>
 		</cfloop>
 
 		<cfreturn ReturnStruct />
 	</cffunction>
 
-	<!--- set all values from provided raw data--->
-	<cffunction name="setAll" access="public" output="false" returntype="any">
+	<!--- add all --->
+	<cffunction name="addAll" access="public" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="RawData" type="any" required="true" hint="Can be a struct or a query or an array of structs" />
 
@@ -193,17 +209,32 @@
 			var RawData = arguments.RawData;
 		</cfscript>
 
+		<cfreturn setAll(BO, RawData, BO.getTotalRows() + 1) />
+	</cffunction>
+
+	<!--- set all --->
+	<cffunction name="setAll" access="public" output="false" returntype="any">
+		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="RawData" type="any" required="true" hint="Can be a struct or a query or an array of structs" />
+		<cfargument name="RowNum" type="numeric" required="true" />
+
+		<cfscript>
+			var BO = arguments.BO;
+			var RawData = arguments.RawData;
+			var RowNum = arguments.RowNum;
+		</cfscript>
+
 		<!--- if is struct --->
 		<cfif isStruct(RawData)>
-			<cfreturn setAllFromStruct(BO, RawData) />
+			<cfreturn setAllFromStruct(BO, RawData, RowNum) />
 
 		<!--- array of structs, set each row --->
 		<cfelseif isArray(RawData)>
-			<cfreturn setAllFromArrayOfStructs(BO, RawData) />
+			<cfreturn setAllFromArrayOfStructs(BO, RawData, RowNum) />
 
 		<!--- if is query --->
 		<cfelseif isQuery(RawData)>
-			<cfreturn setAllFromQuery(BO, RawData) />
+			<cfreturn setAllFromQuery(BO, RawData, RowNum) />
 
 		<!--- otherwise error --->
 		<cfelse>
@@ -217,17 +248,19 @@
 	<cffunction name="setAllFromStruct" access="private" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="StructData" type="struct" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var StructData = arguments.StructData;
+			var RowNum = arguments.RowNum;
 
 			var currentPropertyName = '';
 		</cfscript>
 
 		<cfloop collection="#StructData#" item="currentPropertyName">
 			<cftry>
-				<cfset BO.set(currentPropertyName, StructData[currentPropertyName]) />
+				<cfset BO.set(currentPropertyName, StructData[currentPropertyName], RowNum) />
 				<cfcatch type="LoadedObjects"><!--- do nothing ---></cfcatch>
 			</cftry>
 		</cfloop>
@@ -239,18 +272,19 @@
 	<cffunction name="setAllFromArrayOfStructs" access="private" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="ArrayData" type="array" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var ArrayData = arguments.ArrayData;
+			var RowNum = arguments.RowNum;
 
 			var currentIndex = '';
 		</cfscript>
 
 		<cfloop from="1" to="#ArrayLen(ArrayData)#" index="currentIndex">
 			<cfif IsStruct(ArrayData[currentIndex])>
-				<cfset BO.setCurrentRow(currentIndex) />
-				<cfset setAllFromStruct(BO, ArrayData[currentIndex]) />
+				<cfset setAllFromStruct(BO, ArrayData[currentIndex], currentIndex) />
 			</cfif>
 		</cfloop>
 
@@ -261,11 +295,13 @@
 	<cffunction name="setAllFromQuery" access="private" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
 		<cfargument name="QueryData" type="query" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
 
 		<cfscript>
 			var BO = arguments.BO;
 			var QueryData = arguments.QueryData;
 			var Properties = QueryData.ColumnList;
+			var RowNum = arguments.RowNum;
 
 			var currentPropertyName = '';
 			var currentIndex = 0;
@@ -275,8 +311,7 @@
 			<cfset currentIndex = currentIndex + 1 />
 			<cfloop list="#Properties#" index="currentPropertyName">
 				<cftry>
-					<cfset BO.setCurrentRow(currentIndex) />
-					<cfset BO.set(currentPropertyName, QueryData[currentPropertyName]) />
+					<cfset BO.set(currentPropertyName, QueryData[currentPropertyName], currentIndex) />
 					<cfcatch type="LoadedObjects"><!--- do nothing ---></cfcatch>
 				</cftry>
 			</cfloop>
@@ -313,27 +348,51 @@
 			</cfif>
 		<cfelseif IsStruct(RawData)>
 
-			<!--- if rawdata is a single struct representing a single row, put it in a parent struct collection --->
-			<cfif not StructKeyExists(RawData, '1')>
+			<!--- if rawdata is a single struct representing a single row, put it in parent struct collection --->
+			<cfif StructCount(RawData) AND not StructKeyExists(RawData, '1')>
 				<cfset RawData = { 1 = RawData } />
 			</cfif>
 
-			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>
-				<cfset DataManager.init([RawData]) />
+			<cfif IsObject(DataManager) AND IsStruct(DataManager.getRawData())>
+				<cfset DataManager.init(RawData) />
 			<cfelse>
 				<cfset DataManager = createObject('component', 'types.structofstructs').init(RawData) />
 			</cfif>
 		<cfelse>
-			<cfif IsObject(DataManager) AND IsArray(DataManager.getRawData())>
-				<cfset DataManager.init([StructNew()]) />
-			<cfelse>
-				<cfset DataManager = createObject('component', 'types.structofstructs').init({1 = StructNew()}) />
-			</cfif>
+			<cfset DataManager = createObject('component', 'types.structofstructs').init(StructNew()) />
 		</cfif>
-
+<!---
 		<cfset BO.setTotalRows(DataManager.numRows()) />
+--->
 		<cfset BO.setRawDataManager(DataManager) />
 
+		<cfreturn BO />
+	</cffunction>
+
+<!--- * * * * * * * * --->
+<!--- * * Rows * * * *--->
+<!--- * * * * * * * * --->
+
+	<!--- remove row --->
+	<cffunction name="removeRow" access="public" output="false" returntype="any">
+		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
+
+		<cfscript>
+			var BO = arguments.BO;
+			var RowNum = arguments.RowNum;
+			var TotalRows = BO.getTotalRows();
+			var DataManager = BO.getRawDataManager();
+		</cfscript>
+
+		<cfif RowNum lte 0 OR RowNum gt TotalRows>
+			<cfreturn BO />
+		</cfif>
+
+		<cfset DataManager.removeRow(RowNum) />
+<!---
+		<cfset BO.setTotalRows(DataManager.numRows()) />
+--->
 		<cfreturn BO />
 	</cffunction>
 

@@ -23,9 +23,14 @@
 		<cfreturn variables.LoadedObjects.FW />
 	</cffunction>
 
-	<!--- get loaded objects name --->
+	<!--- get loaded objects bo path --->
 	<cffunction name="getLoadedObjectsBOPath" access="public" output="false" returntype="string">
 		<cfreturn variables.LoadedObjects.BOPath />
+	</cffunction>
+
+	<!--- new --->
+	<cffunction name="new" access="public" output="false" returntype="any" hint="Returns a new empty object of the same type.">
+		<cfreturn variables.LoadedObjects.FW.new(getLoadedObjectsBOPath()) />
 	</cffunction>
 
 <!--- * * * * * * * * *--->

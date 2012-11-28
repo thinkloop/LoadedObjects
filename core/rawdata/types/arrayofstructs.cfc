@@ -93,6 +93,12 @@
 		<cfreturn variables.RawData />
 	</cffunction>
 
+	<!--- get raw row (by reference) --->
+	<cffunction name="getRawRow" access="public" output="false" returntype="struct">
+		<cfargument name="RowNum" type="numeric" required="true" />
+		<cfreturn variables.RawData[RowNum] />
+	</cffunction>
+
 <!--- * * * * * * * * --->
 <!--- * * PRIVATE * * --->
 <!--- * * * * * * * * --->
