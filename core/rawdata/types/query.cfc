@@ -111,6 +111,16 @@
 		<cfthrow message="Function query.getRawRow() not supported - must use structofstructs or arrayofstructs." />
 	</cffunction>
 
+	<!--- clear --->
+	<cffunction name="clear" access="public" output="false" returntype="any">
+		<cfquery name="variables.RawData" dbtype="query">
+		SELECT *
+		FROM variables.RawData
+		WHERE 1=0
+		</cfquery>
+		<cfreturn this />
+	</cffunction>
+
 <!--- * * * * * * * * --->
 <!--- * * PRIVATE * * --->
 <!--- * * * * * * * * --->
@@ -185,11 +195,7 @@
 		<cfif numRows() gt 1>
 			<cfset variables.RawData.RemoveRows(arguments.RowNum - 1, 1) />
 		<cfelse>
-			<cfquery name="variables.RawData" dbtype="query">
-			SELECT *
-			FROM variables.RawData
-			WHERE 1=0
-			</cfquery>
+			<cfset clear() />
 		</cfif>
 		<cfreturn this />
 	</cffunction>

@@ -99,6 +99,12 @@
 		<cfreturn variables.RawData[RowNum] />
 	</cffunction>
 
+	<!--- clear --->
+	<cffunction name="clear" access="public" output="false" returntype="any">
+		<cfset ArrayClear(variables.RawData) />
+		<cfreturn this />
+	</cffunction>
+
 <!--- * * * * * * * * --->
 <!--- * * PRIVATE * * --->
 <!--- * * * * * * * * --->

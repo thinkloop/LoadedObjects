@@ -221,7 +221,9 @@
 		<cfscript>
 			var BO = arguments.BO;
 			var RawData = arguments.RawData;
-			var RowNum = arguments.RowNum;
+			var RowNum = Max(arguments.RowNum, 1);
+
+			var RawDataManager = BO.getRawDataManager();
 		</cfscript>
 
 		<!--- if is struct --->
@@ -253,7 +255,7 @@
 		<cfscript>
 			var BO = arguments.BO;
 			var StructData = arguments.StructData;
-			var RowNum = arguments.RowNum;
+			var RowNum = Max(arguments.RowNum, 1);
 
 			var currentPropertyName = '';
 		</cfscript>
@@ -277,14 +279,14 @@
 		<cfscript>
 			var BO = arguments.BO;
 			var ArrayData = arguments.ArrayData;
-			var RowNum = arguments.RowNum;
+			var RowNum = Max(arguments.RowNum, 1);
 
 			var currentIndex = '';
 		</cfscript>
 
 		<cfloop from="1" to="#ArrayLen(ArrayData)#" index="currentIndex">
 			<cfif IsStruct(ArrayData[currentIndex])>
-				<cfset setAllFromStruct(BO, ArrayData[currentIndex], currentIndex) />
+				<cfset setAllFromStruct(BO, ArrayData[currentIndex], currentIndex + RowNum - 1) />
 			</cfif>
 		</cfloop>
 
@@ -301,14 +303,14 @@
 			var BO = arguments.BO;
 			var QueryData = arguments.QueryData;
 			var Properties = QueryData.ColumnList;
-			var RowNum = arguments.RowNum;
+			var RowNum = Max(arguments.RowNum, 1);
 
 			var currentPropertyName = '';
 			var currentIndex = 0;
 		</cfscript>
 
 		<cfloop query="QueryData">
-			<cfset currentIndex = currentIndex + 1 />
+			<cfset currentIndex = QueryData.CurrentRow + RowNum - 1 />
 			<cfloop list="#Properties#" index="currentPropertyName">
 				<cftry>
 					<cfset BO.set(currentPropertyName, QueryData[currentPropertyName], currentIndex) />
@@ -365,6 +367,24 @@
 		<cfset BO.setTotalRows(DataManager.numRows()) />
 --->
 		<cfset BO.setRawDataManager(DataManager) />
+
+		<cfreturn BO />
+	</cffunction>
+
+	<!--- clear --->
+	<cffunction name="clear" access="public" output="false" returntype="any">
+		<cfargument name="BO" type="any" required="true" />
+
+		<cfscript>
+			var BO = arguments.BO;
+			var RawDataManager = BO.getRawDataManager();
+		</cfscript>
+
+		<cfif IsObject(RawDataManager)>
+			<cfset RawDataManager.clear() />
+		<cfelse>
+			<cfset setRawData(BO, StructNew()) />
+		</cfif>
 
 		<cfreturn BO />
 	</cffunction>

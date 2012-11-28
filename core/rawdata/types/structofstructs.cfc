@@ -100,6 +100,12 @@
 		<cfreturn variables.RawData[RowNum] />
 	</cffunction>
 
+	<!--- clear --->
+	<cffunction name="clear" access="public" output="false" returntype="any">
+		<cfset StructClear(variables.RawData) />
+		<cfreturn this />
+	</cffunction>
+
 <!--- * * * * * * * * --->
 <!--- * * PRIVATE * * --->
 <!--- * * * * * * * * --->
@@ -131,7 +137,21 @@
 	<!--- remove row --->
 	<cffunction name="removeRow" access="public" output="false" returntype="any">
 		<cfargument name="RowNum" type="numeric" required="true" />
-		<cfset StructDelete(variables.RawData, arguments.RowNum, false) />
+
+		<cfscript>
+			var RowNum = arguments.RowNum;
+			var numRows = numRows();
+
+			var CurrentRow = 0;
+		</cfscript>
+
+		<cfloop from="#RowNum + 1#" to="#numRows#" index="CurrentRow">
+			<cfset variables.RawData[CurrentRow - 1] = variables.RawData[CurrentRow] />
+		</cfloop>
+
+		<cfset StructDelete(variables.RawData, CurrentRow - 1, false) />
+
+
 		<cfreturn this />
 	</cffunction>
 </cfcomponent>

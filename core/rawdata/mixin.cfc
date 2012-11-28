@@ -189,12 +189,13 @@
 --->
 
 	</cffunction>
+<!---
 	<cffunction name="setTotalRows" access="public" output="false" returntype="any" hint="The total number of rows in the recordset.">
 		<cfargument name="TotalNumRows" type="numeric" required="true" />
 		<cfset variables.LoadedObjects.RawData.TotalRows = arguments.TotalNumRows />
 		<cfreturn this />
 	</cffunction>
-
+--->
 	<!--- should probably not be used, but maybe needed, not used for now
 	<cffunction name="getActualTotalRows" access="public" output="false" returntype="numeric" hint="The total number of rows in the underlying rawdata.">
 		<cfreturn getRawDataManager().numRows() />
@@ -240,7 +241,7 @@
 
 	<!--- clear --->
 	<cffunction name="clear" access="public" output="false" returntype="any">
-		<cfreturn setRawData(StructNew()) />
+		<cfreturn getLoadedObjectsPlugin('RawData').clear(this) />
 	</cffunction>
 
 <!--- * * * * * * * * * * *--->
