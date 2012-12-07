@@ -111,17 +111,58 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		<cfreturn this />
 	</cffunction>
 --->
+	<!--- index update --->
+	<cffunction name="indexUpdate" access="public" output="false" returntype="any">
+		<cfscript>
+			var Index = StructNew();
+
+			var currentProperty = '';
+			var currentIndexName = '';
+			var currentKey = '';
+			var currentRow = '';
+			var TotalRows = getTotalRows();
+
+			Index.Data = StructNew();
+			Index.Definitions = variables.LoadedObjects.Index.Definitions;
+		</cfscript>
+
+		<!--- create index if it does not exist --->
+		<cfif not indexExists()>
+			<cfset indexCreate() />
+		</cfif>
+
+		<!--- add each record to all indexes --->
+		<cfloop from="1" to="#TotalRows#" index="currentRow">
+			<cfloop collection="#Index.Definitions#" item="currentIndexName">
+				<cfset currentKey = "" />
+				<cfloop list="#Index.Definitions[currentIndexName]#" index="currentProperty">
+					<cfset currentKey = "#currentKey##get(currentProperty, currentRow)#" />
+				</cfloop>
+				<cfset Index.Data[currentIndexName][currentKey] = currentRow />
+			</cfloop>
+		</cfloop>
+
+		<cfscript>
+//			StructClear(variables.LoadedObjects.Index.Data);
+//			StructAppend(variables.LoadedObjects.Index.Data, Index.Data, true);
+
+			variables.LoadedObjects.Index.Data = Index.Data;
+		</cfscript>
+
+		<cfreturn this />
+	</cffunction>
+
 	<!--- index create --->
 	<cffunction name="indexCreate" access="public" output="false" returntype="any">
 		<cfscript>
 			var Index = StructNew();
 
 			var Properties = getLoadedObjectsMetaData().Properties;
+			var OrderedProperties = StructSort(Properties, 'numeric', 'asc', 'Position');
+
 			var currentProperty = '';
 			var currentIndexName = '';
 			var currentKey = '';
-
-			var OrderedProperties = StructSort(Properties, 'numeric', 'asc', 'Position');
 
 			Index.Data = StructNew();
 			Index.Definitions = StructNew();
@@ -140,18 +181,13 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 			</cfif>
 		</cfloop>
 
-		<!--- add each record to all indexes --->
-		<cfloop condition="loop()">
-			<cfloop collection="#Index.Definitions#" item="currentIndexName">
-				<cfset currentKey = "" />
-				<cfloop list="#Index.Definitions[currentIndexName]#" index="currentProperty">
-					<cfset currentKey = "#currentKey##get(currentProperty)#" />
-				</cfloop>
-				<cfset Index.Data[currentIndexName][currentKey] = getCurrentRow() />
-			</cfloop>
-		</cfloop>
+		<cfscript>
+			StructClear(variables.LoadedObjects.Index.Definitions);
+			StructAppend(variables.LoadedObjects.Index.Definitions, Index.Definitions, true);
 
-		<cfset variables.LoadedObjects.Index = Index />
+			StructClear(variables.LoadedObjects.Index.Data);
+			StructAppend(variables.LoadedObjects.Index.Data, Index.Data, true);
+		</cfscript>
 
 		<cfreturn this />
 	</cffunction>

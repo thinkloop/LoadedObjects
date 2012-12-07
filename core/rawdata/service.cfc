@@ -24,7 +24,7 @@
 			var ChildPropertyName = '';
 		</cfscript>
 
-		<!--- if property does not exist, check if child object property exists --->
+		<!--- if property does not exist, throw --->
 		<cfif not BO.existsLoadedObjectsMetadata(PropertyName)>
 			<cfthrow type="LoadedObjects" errorcode="LoadedObjects.Set.UndefinedProperty" message="Could not set property '#UCase(PropertyName)#' in component '#UCase(BO.getLoadedObjectsBOPath())#'." detail="Ensure that the property is defined, and that it is spelled correctly." />
 		</cfif>
@@ -302,20 +302,19 @@
 		<cfscript>
 			var BO = arguments.BO;
 			var QueryData = arguments.QueryData;
-			var Properties = QueryData.ColumnList;
+			var ColumnList = QueryData.ColumnList;
 			var RowNum = Max(arguments.RowNum, 1);
 
-			var currentPropertyName = '';
+			var currentColumnName = '';
 			var currentIndex = 0;
 		</cfscript>
 
 		<cfloop query="QueryData">
 			<cfset currentIndex = QueryData.CurrentRow + RowNum - 1 />
-			<cfloop list="#Properties#" index="currentPropertyName">
-				<cftry>
-					<cfset BO.set(currentPropertyName, QueryData[currentPropertyName], currentIndex) />
-					<cfcatch type="LoadedObjects"><!--- do nothing ---></cfcatch>
-				</cftry>
+			<cfloop list="#ColumnList#" index="currentColumnName">
+				<cfif BO.existsLoadedObjectsMetadata(currentColumnName)>
+					<cfset BO.set(currentColumnName, QueryData[currentColumnName], currentIndex) />
+				</cfif>
 			</cfloop>
 		</cfloop>
 
@@ -385,6 +384,8 @@
 		<cfelse>
 			<cfset setRawData(BO, StructNew()) />
 		</cfif>
+
+		<cfset BO.clearHasBeenSet() />
 
 		<cfreturn BO />
 	</cffunction>

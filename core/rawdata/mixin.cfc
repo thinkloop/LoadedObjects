@@ -24,59 +24,11 @@
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="Value" type="any" required="true" />
 		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
-
-		<cfscript>
-			var PropertyName = arguments.PropertyName;
-			var Value = arguments.Value;
-			var RowNum = arguments.RowNum;
-
-			var CustomFunctionName = 'set#PropertyName#';
-			var CustomFunction = '';
-		</cfscript>
-
-		<!--- if a real function exists, use it --->
-		<cfif existsFunction(CustomFunctionName)>
-			<cfset CustomFunction = variables[CustomFunctionName] />
-			<cfreturn CustomFunction(Value, RowNum) />
-		</cfif>
-
-		<cfset setValue(PropertyName, Value, RowNum) />
-
-		<cfreturn this />
+		<cfreturn getLoadedObjectsPlugin('RawData').set(this, arguments.PropertyName, arguments.Value, arguments.RowNum) />
 	</cffunction>
 
 	<!--- get --->
 	<cffunction name="get" access="public" output="false" returntype="any">
-		<cfargument name="PropertyName" type="string" required="true" />
-		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
-
-		<cfscript>
-			var PropertyName = arguments.PropertyName;
-			var RowNum = arguments.RowNum;
-
-			var CustomFunctionName = 'get#PropertyName#';
-			var CustomFunction = '';
-		</cfscript>
-
-		<!--- if a real function exists, use it --->
-		<cfif existsFunction(CustomFunctionName)>
-			<cfset CustomFunction = variables[CustomFunctionName] />
-			<cfreturn CustomFunction(RowNum) />
-		</cfif>
-
-		<cfreturn getValue(PropertyName, RowNum) />
-	</cffunction>
-
-	<!--- set value: convenience function so that BO's can easily get/set properties when overriding - don't use this unless you HAVE to - use regular set() --->
-	<cffunction name="setValue" access="public" output="false" returntype="any">
-		<cfargument name="PropertyName" type="string" required="true" />
-		<cfargument name="Value" type="any" required="true" />
-		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
-		<cfreturn getLoadedObjectsPlugin('RawData').set(this, arguments.PropertyName, arguments.Value, arguments.RowNum) />
-	</cffunction>
-
-	<!--- get value: convenience function so that BO's can easily get/set properties when overriding - don't use this unless you HAVE to - use regular get() --->
-	<cffunction name="getValue" access="public" output="false" returntype="any">
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
 		<cfreturn getLoadedObjectsPlugin('RawData').get(this, arguments.PropertyName, arguments.RowNum) />
@@ -161,10 +113,6 @@
 	<cffunction name="setCurrentRow" access="public" output="false" returntype="any" hint="RowNum is usually 0 (which returns 1 from the getter by default), unless we are in the middle of looping.">
 		<cfargument name="RowNum" type="numeric" required="true" />
 		<cfset variables.LoadedObjects.RawData.CurrentRow = arguments.RowNum />
-
-		<cfif arguments.RowNum gt getTotalRows()>
-			<cfset setTotalRows(arguments.RowNum) />
-		</cfif>
 		<cfreturn this />
 	</cffunction>
 
@@ -259,7 +207,7 @@
 		<cfreturn this />
 	</cffunction>
 
-	<!--- all has been set --->
+	<!--- all has been set
 	<cffunction name="allHasBeenSet" access="public" output="false" returntype="any">
 		<cfscript>
 			var Properties = getLoadedObjectsMetadata().Properties;
@@ -283,12 +231,12 @@
 
 		<cfreturn this />
 	</cffunction>
-
+--->
 <!--- * * * * * * * * * * * * * --->
 <!--- * * ON MISSING METHOD * * --->
 <!--- * * * * * * * * * * * * * --->
 
-	<!--- onMissingMethod: provides generic get/set/isnull functionality without having to write out the functions --->
+	<!--- onMissingMethod: provides generic get/set/isnull functionality without having to write out the functions
 	<cffunction name="onMissingMethod" access="public" output="false" returntype="any" hint="Provides generic get/set/is functionality without having to write out the functions">
 		<cfargument name="MissingMethodName" type="string" />
 		<cfargument name="MissingMethodArguments" type="struct" />
@@ -345,5 +293,5 @@
 			<cfreturn ReturnVal />
 		</cfif>
 	</cffunction>
-
+--->
 </cfcomponent>
