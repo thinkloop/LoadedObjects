@@ -53,7 +53,7 @@
 			var RowNum = arguments.RowNum;
 		</cfscript>
 
-		<cfif StructKeyExists(variables.RawData, RowNum) AND StructKeyExists(variables.RawData[RowNum], PropertyName)>
+		<cfif StructKeyExists(variables.RawData, RowNum) AND IsStruct(variables.RawData[RowNum]) AND StructKeyExists(variables.RawData[RowNum], PropertyName)>
 			<cfreturn true />
 		</cfif>
 
@@ -124,6 +124,11 @@
 		<cfloop condition="numRows() lt RowNum">
 			<cfset addRow() />
 		</cfloop>
+
+		<!--- make sure row is struct --->
+		<cfif not IsStruct(variables.RawData[RowNum])>
+			<cfset variables.RawData[RowNum] = StructNew() />
+		</cfif>
 
 		<cfreturn this />
 	</cffunction>

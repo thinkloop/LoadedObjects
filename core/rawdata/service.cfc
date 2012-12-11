@@ -350,7 +350,7 @@
 		<cfelseif IsStruct(RawData)>
 
 			<!--- if rawdata is a single struct representing a single row, put it in parent struct collection --->
-			<cfif StructCount(RawData) AND not StructKeyExists(RawData, '1')>
+			<cfif not StructKeyExists(RawData, '1')>
 				<cfset RawData = { 1 = RawData } />
 			</cfif>
 
