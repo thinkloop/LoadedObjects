@@ -63,7 +63,6 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		<cfscript>
 			var IndexName = arguments.IndexName;
 			var ID = arguments.ID;
-
 			var Index = variables.LoadedObjects.Index;
 		</cfscript>
 
@@ -73,17 +72,13 @@ Edited By: Baz K. (bk@thinkloop.com) - 07/06/2008
 		</cfif>
 
 		<!--- if index name specified, check for its existence --->
-		<cfif Len(IndexName)>
-			<cfif not StructKeyExists(Index.Data, IndexName)>
-				<cfreturn false />
-			</cfif>
+		<cfif Len(IndexName) AND not StructKeyExists(Index.Data, IndexName)>
+			<cfreturn false />
 		</cfif>
 
 		<!--- if id specified, check for its existence --->
-		<cfif Len(ID)>
-			<cfif not StructKeyExists(Index.Data[IndexName], ID)>
-				<cfreturn false />
-			</cfif>
+		<cfif Len(ID) AND not StructKeyExists(Index.Data[IndexName], ID)>
+			<cfreturn false />
 		</cfif>
 
 		<cfreturn true />

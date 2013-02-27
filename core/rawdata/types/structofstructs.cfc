@@ -156,6 +156,24 @@
 
 		<cfset StructDelete(variables.RawData, CurrentRow - 1, false) />
 
+		<cfreturn this />
+	</cffunction>
+
+	<!--- swap rows --->
+	<cffunction name="swapRows" access="public" output="false" returntype="any">
+		<cfargument name="RowNum1" type="numeric" required="true" />
+		<cfargument name="RowNum2" type="numeric" required="true" />
+
+		<cfscript>
+			var RowNum1 = arguments.RowNum1;
+			var RowNum2 = arguments.RowNum2;
+
+			var RawData1 = getRawRow(RowNum1);
+			var RawData2 = getRawRow(RowNum2);
+
+			variables.RawData[RowNum1] = RawData2;
+			variables.RawData[RowNum2] = RawData1;
+		</cfscript>
 
 		<cfreturn this />
 	</cffunction>

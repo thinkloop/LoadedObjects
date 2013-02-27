@@ -6,7 +6,6 @@
 			variables.LoadedObjects.RawData = StructNew();
 			variables.LoadedObjects.RawData.Manager = '';
 			variables.LoadedObjects.RawData.CurrentRow = 0;
-			variables.LoadedObjects.RawData.TotalRows = 0;
 			variables.LoadedObjects.RawData.HasBeenSet = StructNew();
 
 			clear();
@@ -81,6 +80,14 @@
 		<cfreturn getLoadedObjectsPlugin('RawData').addAll(this, arguments.RawData) />
 	</cffunction>
 
+	<!--- set all from query row --->
+	<cffunction name="setAllFromQueryRow" access="public" output="false" returntype="any">
+		<cfargument name="RawData" type="any" default="" hint="Query." />
+		<cfargument name="QueryRow" type="numeric" default="1" />
+		<cfargument name="RowNum" type="numeric" default="#getCurrentRow()#" />
+		<cfreturn getLoadedObjectsPlugin('RawData').setAllFromQueryRow(this, arguments.RawData, arguments.RowNum, arguments.QueryRow) />
+	</cffunction>
+
 <!--- * * * * * * *--->
 <!--- * * LOOP * * --->
 <!--- * * * * * * *--->
@@ -124,18 +131,6 @@
 		<cfelse>
 			<cfreturn 0 />
 		</cfif>
-<!---
-		<cfscript>
-			var TotalRows = variables.LoadedObjects.RawData.TotalRows;
-		</cfscript>
-
-		<cfif TotalRows lt 0>
-			<cfreturn 0 />
-		</cfif>
-
-		<cfreturn TotalRows />
---->
-
 	</cffunction>
 <!---
 	<cffunction name="setTotalRows" access="public" output="false" returntype="any" hint="The total number of rows in the recordset.">
@@ -149,6 +144,13 @@
 		<cfreturn getRawDataManager().numRows() />
 	</cffunction>
 	--->
+
+	<cffunction name="swapRows" access="public" output="false" returntype="any">
+		<cfargument name="RowNum1" type="numeric" required="true" />
+		<cfargument name="RowNum2" type="numeric" required="true" />
+		<cfreturn getLoadedObjectsPlugin('RawData').swapRows(this, arguments.RowNum1, arguments.RowNum2) />
+		<cfreturn this />
+	</cffunction>
 
 <!--- * * * * * * * * --->
 <!--- * * Rows * * * *--->

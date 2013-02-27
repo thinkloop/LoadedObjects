@@ -72,11 +72,11 @@
 				<cfset RawValue = getRaw(BO, PropertyName, CurrentRow) />
 			<cfelse>
 				<cfset RawValue = BO.getLoadedObjectsMetadata(PropertyName, 'Default') />
-			</cfif>
 
-			<!--- if property is child object, see if raw data from parent could be used to populate it --->
-			<cfif BO.getLoadedObjectsMetadata(PropertyName, 'IsObject')>
-				<cfset RawValue.setRawData(getRawWithoutPrefix(BO, PropertyName, CurrentRow)) />
+				<!--- if property is child object, see if raw data from parent could be used to populate it --->
+				<cfif BO.getLoadedObjectsMetadata(PropertyName, 'IsObject')>
+					<cfset RawValue.setRawData(getRawWithoutPrefix(BO, PropertyName, CurrentRow)) />
+				</cfif>
 			</cfif>
 
 			<!--- set the value manually here rather than using set() to avoid recursive stack overflow when overriding setters and need to call their getters to check the value --->
@@ -321,6 +321,32 @@
 		<cfreturn BO />
 	</cffunction>
 
+	<!--- set all from query row --->
+	<cffunction name="setAllFromQueryRow" access="public" output="false" returntype="any">
+		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="QueryData" type="query" required="true" />
+		<cfargument name="RowNum" type="numeric" required="true" />
+		<cfargument name="QueryRow" type="numeric" required="true" />
+
+		<cfscript>
+			var BO = arguments.BO;
+			var QueryData = arguments.QueryData;
+			var ColumnList = QueryData.ColumnList;
+			var RowNum = Max(arguments.RowNum, 1);
+			var QueryRow = arguments.QueryRow;
+
+			var currentColumnName = '';
+		</cfscript>
+
+		<cfloop list="#ColumnList#" index="currentColumnName">
+			<cfif BO.existsLoadedObjectsMetadata(currentColumnName)>
+				<cfset BO.set(currentColumnName, QueryData[currentColumnName][QueryRow], RowNum) />
+			</cfif>
+		</cfloop>
+
+		<cfreturn BO />
+	</cffunction>
+
 	<!--- set raw data --->
 	<cffunction name="setRawData" access="public" output="false" returntype="any">
 		<cfargument name="BO" type="any" required="true" />
@@ -350,7 +376,7 @@
 		<cfelseif IsStruct(RawData)>
 
 			<!--- if rawdata is a single struct representing a single row, put it in parent struct collection --->
-			<cfif not StructKeyExists(RawData, '1')>
+			<cfif StructCount(RawData) AND not StructKeyExists(RawData, '1')>
 				<cfset RawData = { 1 = RawData } />
 			</cfif>
 
@@ -393,6 +419,18 @@
 <!--- * * * * * * * * --->
 <!--- * * Rows * * * *--->
 <!--- * * * * * * * * --->
+
+	<!--- swap rows --->
+	<cffunction name="swapRows" access="public" output="false" returntype="any">
+		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="RowNum1" type="numeric" required="true" />
+		<cfargument name="RowNum2" type="numeric" required="true" />
+
+		<cfset swapRawRows(arguments.BO, arguments.RowNum1, arguments.RowNum2) />
+		<cfset swapHasBeenSet(arguments.BO, arguments.RowNum1, arguments.RowNum2) />
+
+		<cfreturn BO />
+	</cffunction>
 
 	<!--- remove row --->
 	<cffunction name="removeRow" access="public" output="false" returntype="any">
@@ -438,6 +476,34 @@
 		<cfreturn StructKeyExists(HasBeenSet, CurrentRow) AND StructKeyExists(HasBeenSet[CurrentRow], PropertyName) AND HasBeenSet[CurrentRow][PropertyName] />
 	</cffunction>
 
+	<cffunction name="swapHasBeenSet" access="private" output="false" returntype="any">
+		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="RowNum1" type="numeric" required="true" />
+		<cfargument name="RowNum2" type="numeric" required="true" />
+
+		<cfscript>
+			var BO = arguments.BO;
+			var RowNum1 = arguments.RowNum1;
+			var RowNum2 = arguments.RowNum2;
+
+			var HasBeenSet = BO.getHasBeenSet();
+			var Data1 = StructNew();
+			var Data2 = StructNew();
+
+			if (StructKeyExists(HasBeenSet, RowNum1)) {
+				Data1 = HasBeenSet[RowNum1];
+			}
+			if (StructKeyExists(HasBeenSet, RowNum2)) {
+				Data2 = HasBeenSet[RowNum2];
+			}
+
+			HasBeenSet[RowNum1] = Data2;
+			HasBeenSet[RowNum2] = Data1;
+		</cfscript>
+
+		<cfreturn BO />
+	</cffunction>
+
 <!--- * * * * * * * * * * *--->
 <!--- * * DATA MANAGER * * --->
 <!--- * * * * * * * * * * *--->
@@ -458,6 +524,14 @@
 		<cfargument name="PropertyName" type="string" required="true" />
 		<cfargument name="RowNum" type="numeric" required="true" />
 		<cfreturn arguments.BO.getRawDataManager().getRaw(arguments.PropertyName, arguments.RowNum) />
+	</cffunction>
+
+	<!--- swap rows --->
+	<cffunction name="swapRawRows" access="private" output="false" returntype="any">
+		<cfargument name="BO" type="any" required="true" />
+		<cfargument name="RowNum1" type="numeric" required="true" />
+		<cfargument name="RowNum2" type="numeric" required="true" />
+		<cfreturn arguments.BO.getRawDataManager().swapRows(arguments.RowNum1, arguments.RowNum2) />
 	</cffunction>
 
 	<!--- exists raw --->
