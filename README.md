@@ -5,7 +5,7 @@ A ColdFusion micro-framework that declaratively adds new functionality to your b
 
 ###Example
 
-*Init:*
+_Init:_
 ```ColdFusion
 application.loadedObjects = createObject('component', 'loadedobjects.loadedobjects').init(ObjectPathPrefix = 'model.objects');
 ```
