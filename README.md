@@ -5,12 +5,12 @@ A ColdFusion micro-framework that declaratively adds new functionality to your b
 
 ###Example
 
-_Init:_
+Init:
 ```ColdFusion
 application.loadedObjects = createObject('component', 'loadedobjects.loadedobjects').init(ObjectPathPrefix = 'model.objects');
 ```
 
-/model/objects/MyBO.cfc
+Value Object: /model/objects/MyBO.cfc
 ```ColdFusion
 <cfcomponent output="false">
 	<cfproperty name="id" type="numeric" />
