@@ -1,7 +1,7 @@
 LoadedObjects
 =============
 
-A ColdFusion micro-framework that declaratively adds new functionality to your business ojects by using attributes assigned to `<cfproperty>`. Plugins are built-in for get/set, validation, and collections. New plugins for any type of functionality can be developed that use attributes assigned to `<cfproperty>` (whether real or custom attributes).
+A ColdFusion micro-framework that declaratively adds new functionality to your business ojects by using attributes assigned to `<cfproperty>`. Plugins are built-in for get/set, validation, and collections. New plugins can be developed for any type of functionality and can easily leverage new or existing attributes on `<cfproperty>`.
 
 ###Example
 
